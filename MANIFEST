@@ -1,0 +1,7 @@
+Changes
+MANIFEST
+Makefile.PL
+lib/Cron/Sequencer.pm
+t/new.t
+t/parser.t
+t/reminder
