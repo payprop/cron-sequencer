@@ -7,15 +7,25 @@ package Cron::Sequencer::Output;
 
 our $VERSION = '0.01';
 
-use Carp qw(confess);
+use Carp qw(confess croak);
 
 # TODO - take formatter options. Mininally, timezone to use
 sub new {
-    my ($class) = @_;
+    my ($class, %opts) = @_;
     confess('new() called as an instance method')
         if ref $class;
 
-    return bless {}
+    my %state;
+    for my $pair (@{$opts{env} // []}) {
+        # vixie crontab permits empty env variable names, so we should too
+        # we don't need it *here*, but we could implement "unset" syntax as
+        # FOO (ie no = sign)
+        my ($name, $value) = $pair =~ /\A([^=]*)=(.*)\z/;
+        croak("invalid environment variable assignment: '$pair'")
+            unless defined $value;
+        $state{env}{$name} = $value;
+    }
+    return bless \%state;
 }
 
 sub format_group {
@@ -33,9 +43,18 @@ sub format_group {
         push @output, "", "line $entry->{lineno}: $entry->{when}";
 
         my $env = $entry->{env};
-        for my $key (sort keys %$env) {
-            push @output, "$key=$env->{$key}";
+        my $default = $self->{env};
+        my (@unset, @set);
+        for my $key (keys %$default) {
+            push @unset, "unset $key"
+                unless defined $env->{$key};
         }
+        for my $key (keys %$env) {
+            push @set, "$key=$env->{$key}"
+                unless defined $default->{$key} && $default->{$key} eq $env->{$key};
+        }
+        push @output, sort @unset;
+        push @output, sort @set;
 
         push @output, $entry->{command};
     }
