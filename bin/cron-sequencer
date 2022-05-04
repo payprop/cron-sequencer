@@ -12,11 +12,14 @@ require DateTime;
 my %options;
 
 unless(GetOptions(\%options,
+                  'show=s',
                   'hide-env',
                   'env=s@',
               )) {
     pod2usage(exitval => 255, verbose => 1);
 }
+
+$options{show} //= 'today';
 
 my $file = shift;
 
@@ -37,15 +40,47 @@ TODO
 
 my $crontab = Cron::Sequencer->new($file);
 
-my $midnight_gone = DateTime->today();
-my $midnight_next = $midnight_gone->clone()->add(days => 1);
+my ($start, $end);
 
-$crontab->start($midnight_gone->epoch());
-my $end = $midnight_next->epoch();
+if (defined $options{show}) {
+    if ($options{show} =~ /\A\s*(last|this|next)\s+week\s*\z/) {
+        my $which = $1;
+        my $start_of_week = DateTime->now()->truncate(to => 'week');
+        if ($which eq 'last') {
+            $end = $start_of_week->epoch();
+            $start_of_week->subtract(weeks => 1);
+            $start = $start_of_week->epoch();
+        } else {
+            $start_of_week->add(weeks => 1)
+                if $which eq 'next';
+            $start = $start_of_week->epoch();
+            $start_of_week->add(weeks => 1);
+            $end = $start_of_week->epoch();
+        }
+    } elsif ($options{show} =~ /\A\s*yesterday\s*\z/) {
+        my $midnight = DateTime->today();
+        $end = $midnight->epoch();
+        $midnight->subtract(days => 1);
+        $start = $midnight->epoch();
+    } elsif ($options{show} =~ /\A\s*today\s*\z/) {
+        my $midnight = DateTime->today();
+        $start = $midnight->epoch();
+        $midnight->add(days => 1);
+        $end = $midnight->epoch();
+    } elsif ($options{show} =~ /\A\s*tomorrow\s*\z/) {
+        my $midnight = DateTime->today()->add(days => 1);
+        $start = $midnight->epoch();
+        $midnight->add(days => 1);
+        $end = $midnight->epoch();
+    } else {
+        die "$0: Unknown time period '$options{show}' for --show\n";
+    }
+}
 
 my $formatter = Cron::Sequencer::Output->new(%options{qw(env hide-env)});
 my $gap = "\n\n";
 
+$crontab->start($start);
 my $not_first;
 while(my @group = $crontab->next()) {
     last
