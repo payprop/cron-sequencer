@@ -13,6 +13,7 @@ WriteMakefile(
     MIN_PERL_VERSION => '5.20.0',
     PREREQ_PM => {
         'Algorithm::Cron'  => 0,
+        'DateTime'         => 0,
         'Try::Tiny'        => 0,
     },
     TEST_REQUIRES => {

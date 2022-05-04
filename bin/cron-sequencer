@@ -1,0 +1,56 @@
+#!/usr/bin/perl
+
+use v5.20.0;
+use warnings;
+
+require Cron::Sequencer::Output;
+require Cron::Sequencer;
+use Getopt::Long;
+use Pod::Usage;
+require DateTime;
+
+my %options;
+
+unless(GetOptions(\%options,
+              )) {
+    pod2usage(exitval => 255, verbose => 1);
+}
+
+my $file = shift;
+
+pod2usage(exitval => 255)
+    unless defined $file;
+
+=head1 NAME
+
+cron-sequencer - show the sequence of commands that cron would run
+
+=head1 SYNOPSIS
+
+    cron-sequencer crontab-file # show today's events
+
+TODO
+
+=cut
+
+my $crontab = Cron::Sequencer->new($file);
+
+my $midnight_gone = DateTime->today();
+my $midnight_next = $midnight_gone->clone()->add(days => 1);
+
+$crontab->start($midnight_gone->epoch());
+my $end = $midnight_next->epoch();
+
+my $formatter = Cron::Sequencer::Output->new();
+my $gap = "\n\n";
+
+my $not_first;
+while(my @group = $crontab->next()) {
+    last
+        if $group[0]->{time} >= $end;
+
+    print $gap
+        if $not_first++;
+
+    print map { "$_\n" } $formatter->format_group(@group);
+}

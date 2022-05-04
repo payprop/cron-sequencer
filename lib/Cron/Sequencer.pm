@@ -159,6 +159,63 @@ sub _parser {
     return \@actions;
 }
 
+# The intent is to avoid repeatedly calling ->next_time() on every event on
+# every loop, which would make next() have O(n) performance, and looping a range
+# O(n**2)
+
+sub start {
+    my ($self, $start) = @_;
+
+    croak('start($epoch_seconds)')
+        unless $start =~ /\A[1-9][0-9]*\z/;
+
+    # As we have to call ->next_time(), which returns the next time *after* the
+    # epoch time we pass it.
+    --$start;
+
+    for my $entry (@$self) {
+        # Cache the time (in epoch seconds) for the next firing for this entry
+        $entry->{next} = $entry->{whenever}->next_time($start);
+    }
+
+    return;
+}
+
+sub next {
+    my $self = shift;
+
+    return
+        unless @$self;
+
+    my $when = $self->[0]{next};
+    my @found;
+
+    for my $entry (@$self) {
+        if ($entry->{next} < $when) {
+            # If this one is earlier, discard everything we found so far
+            $when = $entry->{next};
+            @found = $entry;
+        } elsif ($entry->{next} == $when) {
+            # If it's a tie, add it to the list of found
+            push @found, $entry;
+        }
+    }
+
+    my @retval;
+
+    for my $entry (@found) {
+        push @retval, {
+            %$entry{qw(lineno when command env)},
+            time => $when,
+        };
+
+        # We've "consumed" this firing, so update the cached value
+        $entry->{next} = $entry->{whenever}->next_time($when);
+    }
+
+    return @retval;
+}
+
 =head1 LICENSE
 
 This library is free software; you can redistribute it and/or modify it under
