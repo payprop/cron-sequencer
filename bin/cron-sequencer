@@ -12,6 +12,7 @@ require DateTime;
 my %options;
 
 unless(GetOptions(\%options,
+                  'hide-env',
                   'env=s@',
               )) {
     pod2usage(exitval => 255, verbose => 1);
@@ -42,7 +43,7 @@ my $midnight_next = $midnight_gone->clone()->add(days => 1);
 $crontab->start($midnight_gone->epoch());
 my $end = $midnight_next->epoch();
 
-my $formatter = Cron::Sequencer::Output->new(%options{qw(env)});
+my $formatter = Cron::Sequencer::Output->new(%options{qw(env hide-env)});
 my $gap = "\n\n";
 
 my $not_first;

@@ -16,15 +16,22 @@ sub new {
         if ref $class;
 
     my %state;
-    for my $pair (@{$opts{env} // []}) {
-        # vixie crontab permits empty env variable names, so we should too
-        # we don't need it *here*, but we could implement "unset" syntax as
-        # FOO (ie no = sign)
-        my ($name, $value) = $pair =~ /\A([^=]*)=(.*)\z/;
-        croak("invalid environment variable assignment: '$pair'")
-            unless defined $value;
-        $state{env}{$name} = $value;
+    if ($opts{env}) {
+        croak("'env' and 'hide-env' options can't be used together")
+            if $opts{'hide-env'};
+        for my $pair ($opts{env}->@*) {
+            # vixie crontab permits empty env variable names, so we should too
+            # we don't need it *here*, but we could implement "unset" syntax as
+            # FOO (ie no = sign)
+            my ($name, $value) = $pair =~ /\A([^=]*)=(.*)\z/;
+            croak("invalid environment variable assignment: '$pair'")
+                unless defined $value;
+            $state{env}{$name} = $value;
+        }
+    } elsif ($opts{'hide-env'}) {
+        ++$state{hide_env};
     }
+
     return bless \%state;
 }
 
@@ -42,19 +49,21 @@ sub format_group {
     for my $entry (@entries) {
         push @output, "", "line $entry->{lineno}: $entry->{when}";
 
-        my $env = $entry->{env};
-        my $default = $self->{env};
-        my (@unset, @set);
-        for my $key (keys %$default) {
-            push @unset, "unset $key"
-                unless defined $env->{$key};
+        unless ($self->{hide_env}) {
+            my $env = $entry->{env};
+            my $default = $self->{env};
+            my (@unset, @set);
+            for my $key (keys %$default) {
+                push @unset, "unset $key"
+                    unless defined $env->{$key};
+            }
+            for my $key (keys %$env) {
+                push @set, "$key=$env->{$key}"
+                    unless defined $default->{$key} && $default->{$key} eq $env->{$key};
+            }
+            push @output, sort @unset;
+            push @output, sort @set;
         }
-        for my $key (keys %$env) {
-            push @set, "$key=$env->{$key}"
-                unless defined $default->{$key} && $default->{$key} eq $env->{$key};
-        }
-        push @output, sort @unset;
-        push @output, sort @set;
 
         push @output, $entry->{command};
     }
