@@ -38,33 +38,43 @@ sub new {
         $source = "";
         $crontab = $arg;
     } elsif (ref $arg eq 'HASH') {
-        croak('HASH arguments to new() are Not Yet Implemented');
+        $source = $arg->{source};
+        $crontab = \$arg->{crontab}
+            if exists $arg->{crontab};
     } elsif (ref $arg) {
         confess(sprintf 'Unsupported %s reference passed to new()', ref $arg);
     } elsif ($arg eq "") {
         croak("empty string is not a valid filename");
     } else {
-        $source = " $arg";
-        open my $fh, '<', $arg
-            or croak("Can't open $arg: $!");
+        $source = $arg;
+    }
+
+    if (!$crontab) {
+        croak("you must provide a source filename or crontab contents")
+            unless length $source;
+        open my $fh, '<', $source
+            or croak("Can't open $source: $!");
         local $/;
         my $contents = <$fh>;
         unless(defined $contents && close $fh) {
-            croak("Can't read $arg: $!");
+            croak("Can't read $source: $!");
         }
         $crontab = \$contents;
     }
 
     # vixie crontab refuses a crontab where the last line is missing a newline
     # (but handles an empty file)
-    croak("crontab$source doesn't end with newline")
-        unless $$crontab =~ /(?:\A|\n)\z/ ;
+    unless ($$crontab =~ /(?:\A|\n)\z/) {
+        $source = length $source ? " $source" : "";
+        croak("crontab$source doesn't end with newline");
+    }
 
-    return bless _parser($crontab, length $source ? "of $source" : ""), $class;
+    return bless _parser($crontab, $source), $class;
 }
 
 sub _parser {
     my ($crontab, $source) = @_;
+    my $diag = length $source ? " of $source" : "";
     my ($lineno, %env, @actions);
     for my $line (split "\n", $$crontab) {
         ++$lineno;
@@ -116,7 +126,7 @@ sub _parser {
                 $command = $2;
                 $time = '@' . $1;
                 $truetime = $aliases{$1};
-                croak("Unknown special string \@$1 at line $lineno$source")
+                croak("Unknown special string \@$1 at line $lineno$diag")
                     unless $truetime;
             } elsif ($line =~ /\A
                                 (
@@ -136,7 +146,7 @@ sub _parser {
                 $command = $2;
                 $time = $truetime = $1;
             } else {
-                croak("Can't parse '$line' at line $lineno$source");
+                croak("Can't parse '$line' at line $lineno$diag");
             }
 
             my $whenever = try {
@@ -145,7 +155,7 @@ sub _parser {
                      crontab => $truetime,
                  );
              } catch {
-                 croak("Can't parse time '$truetime' at line $lineno$source: $_");
+                 croak("Can't parse time '$truetime' at line $lineno$diag: $_");
             };
             push @actions,  {
                 lineno => $lineno,
