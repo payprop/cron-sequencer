@@ -38,8 +38,8 @@ sub parse_argv {
     $pod2usage->(exitval => 255)
         unless defined $file;
 
-    my @input = $file;
-    my $output = [%options{qw(env hide-env)}];
+    my @input = { source => $file, %options{qw(env)} };
+    my $output = [%options{qw(hide-env)}];
     return ($start, $end, $output, @input);
 }
 

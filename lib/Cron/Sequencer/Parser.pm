@@ -31,7 +31,7 @@ sub new {
     confess('new() called as an instance method')
         if ref $class;
 
-    my ($source, $crontab);
+    my ($source, $crontab, $env);
     if (!defined $arg) {
         croak(__PACKAGE__ . '->new($class, $arg)');
     } elsif (ref $arg eq 'SCALAR') {
@@ -41,6 +41,17 @@ sub new {
         $source = $arg->{source};
         $crontab = \$arg->{crontab}
             if exists $arg->{crontab};
+        if (exists $arg->{env}) {
+            for my $pair ($arg->{env}->@*) {
+                # vixie crontab permits empty env variable names, so we should
+                # too we don't need it *here*, but we could implement "unset"
+                # syntax as FOO (ie no = sign)
+                my ($name, $value) = $pair =~ /\A([^=]*)=(.*)\z/;
+                croak("invalid environment variable assignment: '$pair'")
+                    unless defined $value;
+                $env->{$name} = $value;
+            }
+        }
     } elsif (ref $arg) {
         confess(sprintf 'Unsupported %s reference passed to new()', ref $arg);
     } elsif ($arg eq "") {
@@ -69,11 +80,11 @@ sub new {
         croak("crontab$source doesn't end with newline");
     }
 
-    return bless _parser($crontab, $source), $class;
+    return bless _parser($crontab, $source, $env), $class;
 }
 
 sub _parser {
-    my ($crontab, $source) = @_;
+    my ($crontab, $source, $default_env) = @_;
     my $diag = length $source ? " of $source" : "";
     my ($lineno, %env, @actions);
     for my $line (split "\n", $$crontab) {
@@ -156,14 +167,30 @@ sub _parser {
                  );
              } catch {
                  croak("Can't parse time '$truetime' at line $lineno$diag: $_");
-            };
-            push @actions,  {
+             };
+
+            my %entry = (
                 lineno => $lineno,
                 when => $time,
                 command => $command,
                 whenever => $whenever,
-                env => { %env },
-            },
+            );
+
+            my (@unset, %set);
+            for my $key (keys %$default_env) {
+                push @unset, $key
+                    unless defined $env{$key};
+            }
+            for my $key (keys %env) {
+                $set{$key} = $env{$key}
+                    unless defined $default_env->{$key} && $default_env->{$key} eq $env{$key};
+            }
+            $entry{unset} = [sort @unset]
+                if @unset;
+            $entry{env} = \%set
+                if %set;
+
+            push @actions, \%entry;
         }
     }
     return \@actions;

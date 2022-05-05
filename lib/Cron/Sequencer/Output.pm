@@ -16,19 +16,7 @@ sub new {
         if ref $class;
 
     my %state;
-    if ($opts{env}) {
-        croak("'env' and 'hide-env' options can't be used together")
-            if $opts{'hide-env'};
-        for my $pair ($opts{env}->@*) {
-            # vixie crontab permits empty env variable names, so we should too
-            # we don't need it *here*, but we could implement "unset" syntax as
-            # FOO (ie no = sign)
-            my ($name, $value) = $pair =~ /\A([^=]*)=(.*)\z/;
-            croak("invalid environment variable assignment: '$pair'")
-                unless defined $value;
-            $state{env}{$name} = $value;
-        }
-    } elsif ($opts{'hide-env'}) {
+    if ($opts{'hide-env'}) {
         ++$state{hide_env};
     }
 
@@ -50,19 +38,12 @@ sub format_group {
         push @output, "", "line $entry->{lineno}: $entry->{when}";
 
         unless ($self->{hide_env}) {
+            local *_;
+            push @output, map "unset $_", $entry->{unset}->@*
+                if $entry->{unset};
             my $env = $entry->{env};
-            my $default = $self->{env};
-            my (@unset, @set);
-            for my $key (keys %$default) {
-                push @unset, "unset $key"
-                    unless defined $env->{$key};
-            }
-            for my $key (keys %$env) {
-                push @set, "$key=$env->{$key}"
-                    unless defined $default->{$key} && $default->{$key} eq $env->{$key};
-            }
-            push @output, sort @unset;
-            push @output, sort @set;
+            push @output, map "$_=$env->{$_}", sort keys %$env
+                if $env;
         }
 
         push @output, $entry->{command};

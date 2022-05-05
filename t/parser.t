@@ -33,7 +33,6 @@ for ([hourly => { min => 0, }],
         lineno => 1,
         when => $special,
         command => 'woof!',
-        env => {},
         whenever => isa('Algorithm::Cron'),
     }], "Special string $special");
 
@@ -74,8 +73,6 @@ cmp_deeply($have, [
         lineno => 6,
         when => '0 1 2 3 4',
         command => 'woof!',
-        env => {
-        },
         whenever => isa('Algorithm::Cron'),
     },
     {

@@ -50,8 +50,8 @@ for (["no arguments", "",
     }
 }
 
-my $default_output = ['env', undef, 'hide-env', undef];
-my $default_for_file = "file";
+my $default_output = ['hide-env', undef];
+my $default_for_file = {env => undef, source => "file"};
 my @defaults = (@today, $default_output);
 
 for (["file", [@defaults, $default_for_file]],
@@ -62,9 +62,9 @@ for (["file", [@defaults, $default_for_file]],
      ["--from 1 --to 11 -- file", [1, 11, $default_output, $default_for_file]],
      ["--from 1 --to 11 file --", [1, 11, $default_output, $default_for_file]],
 
-     ["--hide-env file", [@today, ['env', undef, 'hide-env', 1], $default_for_file]],
+     ["--hide-env file", [@today, ['hide-env', 1], $default_for_file]],
      ["--env=FOO=BAR file --env BAZ=",
-      [@today, ['env', ["FOO=BAR", "BAZ="], 'hide-env', undef], "file"]],
+      [@defaults, {env => ["FOO=BAR", "BAZ="], source => "file"}]],
  ) {
     my ($flat, $want) = @$_;
     my @args = split ' ', $flat;
