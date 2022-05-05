@@ -7,7 +7,7 @@ use Test::More;
 use Test::Deep;
 use Test::Fatal;
 
-require_ok('Cron::Sequencer')
+require_ok('Cron::Sequencer::Parser')
     or BAIL_OUT('When Cron::Sequencer fails to even load, nothing is going to work');
 
 # We assume that the tests for Algorithm::Cron sufficiently test its parser for
@@ -27,7 +27,7 @@ for ([hourly => { min => 0, }],
     my ($special, $expect) = @$_;
     $special = '@' . $special;
 
-    my $have = Cron::Sequencer::_parser(\"$special woof!", " Bother!");
+    my $have = Cron::Sequencer::Parser::_parser(\"$special woof!", " Bother!");
 
     cmp_deeply($have, [{
         lineno => 1,
@@ -44,15 +44,15 @@ for ([hourly => { min => 0, }],
     }
 }
 
-cmp_deeply(Cron::Sequencer::_parser(\'@reboot woof!', " Oops!"),
+cmp_deeply(Cron::Sequencer::Parser::_parser(\'@reboot woof!', " Oops!"),
            [], 'Special string @reboot is ignored');
 
 like(exception {
-        Cron::Sequencer::_parser(\'@woof reboot!', " Oops!");
+        Cron::Sequencer::Parser::_parser(\'@woof reboot!', " Oops!");
      }, qr/^Unknown special string \@woof at line 1 Oops!/,
      'Special string @woof is unknown');
 
-my $have = Cron::Sequencer::_parser(\<<"EOT", " Comments!");
+my $have = Cron::Sequencer::Parser::_parser(\<<"EOT", " Comments!");
 # This is a comment
    # This too
    #IS=Comment
@@ -125,7 +125,7 @@ for (['FOO=BAR', 'FOO', 'BAR', 'normal'],
  ) {
     my ($input, $key, $value, $desc) = @$_;
     my $have
-        = Cron::Sequencer::_parser(\"$input\n* * * * * woof!", " Env test!");
+        = Cron::Sequencer::Parser::_parser(\"$input\n* * * * * woof!", " Env test!");
 
     cmp_deeply($have, [{
         lineno => 2,
@@ -158,7 +158,7 @@ for my $quote1 ("", "'", '"') {
             my $value = $quote2 ? $spaces[5] . 'VALUE' . $spaces[6] : 'VALUE';
 
             my $have
-                = Cron::Sequencer::_parser(\"$input\n* * * * * woof!", " Env test!");
+                = Cron::Sequencer::Parser::_parser(\"$input\n* * * * * woof!", " Env test!");
 
             cmp_deeply($have, [{
                 lineno => 2,
@@ -192,7 +192,7 @@ for my $quote1 ("", "'", '"') {
                 . $spaces[2] . $quote2 . $quote2 . $spaces[3];
 
             my $have
-                = Cron::Sequencer::_parser(\"$input\n* * * * * woof!", " Env test!");
+                = Cron::Sequencer::Parser::_parser(\"$input\n* * * * * woof!", " Env test!");
 
             cmp_deeply($have, [{
                 lineno => 2,
@@ -228,7 +228,7 @@ for (['FOO=', 'omitted value is not legal'],
  ) {
     my ($input, $desc, $want) = @$_;
     my $have = exception {
-        Cron::Sequencer::_parser(\"$input\n* * * * * woof!", " Env test!");
+        Cron::Sequencer::Parser::_parser(\"$input\n* * * * * woof!", " Env test!");
     };
     like($have, $want // qr/\ACan't parse '\Q$input\E'/, $desc);
 }

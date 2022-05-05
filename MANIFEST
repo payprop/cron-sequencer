@@ -4,6 +4,7 @@ Makefile.PL
 bin/cron-sequencer
 lib/Cron/Sequencer.pm
 lib/Cron/Sequencer/Output.pm
+lib/Cron/Sequencer/Parser.pm
 t/new.t
 t/parser.t
 t/reminder
