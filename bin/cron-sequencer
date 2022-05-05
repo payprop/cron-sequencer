@@ -80,14 +80,11 @@ if (defined $options{show}) {
 my $formatter = Cron::Sequencer::Output->new(%options{qw(env hide-env)});
 my $gap = "\n\n";
 
-$crontab->start($start);
 my $not_first;
-while(my @group = $crontab->next()) {
-    last
-        if $group[0]->{time} >= $end;
 
+for my $group ($crontab->sequence($start, $end)) {
     print $gap
         if $not_first++;
 
-    print map { "$_\n" } $formatter->format_group(@group);
+    print map { "$_\n" } $formatter->format_group(@$group);
 }

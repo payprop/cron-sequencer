@@ -34,29 +34,8 @@ sub new {
 # every loop, which would make next() have O(n) performance, and looping a range
 # O(n**2)
 
-sub start {
-    my ($self, $start) = @_;
-
-    croak('start($epoch_seconds)')
-        unless $start =~ /\A[1-9][0-9]*\z/;
-
-    # As we have to call ->next_time(), which returns the next time *after* the
-    # epoch time we pass it.
-    --$start;
-
-    for my $entry (@$self) {
-        # Cache the time (in epoch seconds) for the next firing for this entry
-        $entry->{next} = $entry->{whenever}->next_time($start);
-    }
-
-    return;
-}
-
-sub next {
+sub _next {
     my $self = shift;
-
-    return
-        unless @$self;
 
     my $when = $self->[0]{next};
     my @found;
@@ -85,6 +64,35 @@ sub next {
     }
 
     return @retval;
+}
+
+sub sequence {
+    my ($self, $start, $end) = @_;
+
+    croak('sequence($epoch_seconds, $epoch_seconds)')
+        if $start !~ /\A[1-9][0-9]*\z/ || $end !~ /\A[1-9][0-9]*\z/;
+
+    return
+        unless @$self;
+
+    # As we have to call ->next_time(), which returns the next time *after* the
+    # epoch time we pass it.
+    --$start;
+
+    for my $entry (@$self) {
+        # Cache the time (in epoch seconds) for the next firing for this entry
+        $entry->{next} = $entry->{whenever}->next_time($start);
+    }
+
+    my @results;
+    while(my @group = $self->_next()) {
+        last
+            if $group[0]->{time} >= $end;
+
+        push @results, \@group;
+    }
+
+    return @results;
 }
 
 =head1 LICENSE
