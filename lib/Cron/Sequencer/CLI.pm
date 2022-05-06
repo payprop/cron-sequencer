@@ -38,13 +38,10 @@ sub calculate_start_end {
             $end = $midnight->epoch();
             $midnight->subtract(days => 1);
             $start = $midnight->epoch();
-        } elsif ($options->{show} =~ /\A\s*today\s*\z/) {
+        } elsif ($options->{show} =~ /\A\s*(today|tomorrow)\s*\z/) {
             my $midnight = DateTime->today();
-            $start = $midnight->epoch();
-            $midnight->add(days => 1);
-            $end = $midnight->epoch();
-        } elsif ($options->{show} =~ /\A\s*tomorrow\s*\z/) {
-            my $midnight = DateTime->today()->add(days => 1);
+            $midnight->add(days => 1)
+                if $1 eq 'tomorrow';
             $start = $midnight->epoch();
             $midnight->add(days => 1);
             $end = $midnight->epoch();
