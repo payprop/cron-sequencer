@@ -3,6 +3,7 @@ MANIFEST
 Makefile.PL
 bin/cron-sequencer
 lib/Cron/Sequencer.pm
+lib/Cron/Sequencer/CLI.pm
 lib/Cron/Sequencer/Output.pm
 lib/Cron/Sequencer/Parser.pm
 t/new.t
