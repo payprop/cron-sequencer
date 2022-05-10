@@ -13,6 +13,8 @@ my %options;
 
 unless(GetOptions(\%options,
                   'show=s',
+                  'from=s',
+                  'to=s',
                   'hide-env',
                   'env=s@',
               )) {

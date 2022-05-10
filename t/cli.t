@@ -5,6 +5,7 @@ use warnings;
 
 use Test::More;
 use Test::Deep;
+require DateTime;
 
 use Cron::Sequencer::CLI;
 
@@ -68,5 +69,42 @@ is($next_week[0], $this_week[1], '"next week" starts where "this week" end');
 $duration = $next_week[1] - $next_week[0];
 cmp_ok($duration, '>=', 166 * 3600, 'duration is at least 166 hours');
 cmp_ok($duration, '<=', 170 * 3600, 'duration is  no more than 170 hours');
+
+# Let's arrive at midnight via a slightly different route, which doesn't
+# assume the redefinition of _core_time worked.
+my $midnight
+    = DateTime->from_epoch(epoch => $nowish)->truncate(to => 'day')->epoch();
+
+my $midnight_p5 = $midnight + 5;
+my $midnight_p10 = $midnight + 10;
+
+for (['{from => 42}', [42, 3642]],
+     ['{from => 42, to => 54}', [42, 54]],
+     ['{from => 42, to => "+12"}', [42, 54]],
+
+     ['{from => "+0"}', [$midnight, $midnight + 3600]],
+     ['{from => "-0"}', [$midnight, $midnight + 3600]],
+     ['{from => "+5"}', [$midnight + 5, $midnight + 3605]],
+     ['{from => "-5"}', [$midnight - 5, $midnight + 3595]],
+
+     ['{to => "+5"}', [$midnight, $midnight + 5]],
+     ['{to => $midnight_p5}', [$midnight, $midnight + 5]],
+
+     ['{from => "+0", to => "+5"}', [$midnight, $midnight + 5]],
+     ['{from => "+0", to => $midnight_p5}', [$midnight, $midnight + 5]],
+
+     ['{from => "-5", to => "+5"}', [$midnight - 5, $midnight]],
+     ['{from => "-5", to => $midnight_p5}', [$midnight - 5, $midnight + 5]],
+ ) {
+    my ($raw, $want) = @$_;
+    my $input = eval $raw;
+    # These are not going to get forgiven:
+    is($@, "")
+        or BAIL_OUT("The author left a syntax error in the test source '$raw'");
+    is(ref $input, "HASH")
+        or BAIL_OUT("The author's test source '$raw' is not a HASH reference");
+
+    cmp_deeply([calculate_start_end($input)], $want, "calculate_start_end($raw)");
+}
 
 done_testing();

@@ -14,12 +14,42 @@ our @EXPORT = qw(calculate_start_end);
 sub calculate_start_end {
     my $options = shift;
 
-    $options->{show} //= 'today';
-
     my ($start, $end);
 
-    if (defined $options->{show}) {
-        if ($options->{show} =~ /\A\s*(last|this|next)\s+week\s*\z/) {
+    if (defined $options->{from} || defined $options->{to}) {
+        die "$0: Can't use --show with --from or --to"
+            if defined $options->{show};
+
+        # Default is midnight gone
+        my $from = $options->{from} // '+0';
+        if ($from =~ /\A[1-9][0-9]*\z/) {
+            # Absolute epoch seconds
+            $start = $from;
+        } elsif ($from =~ /\A[-+](?:0|[1-9][0-9]*)\z/) {
+            # Seconds relative to midnight gone
+            $start = DateTime->today()->epoch() + $from;
+        } else {
+            die "$0: Can't parse '$from' for --from\n";
+        }
+
+        # Default is to show 1 hour
+        my $to = $options->{to} // '+3600';
+        if ($to =~ /\A[1-9][0-9]+\z/) {
+            # Absolute epoch seconds
+            $end = $to;
+        } elsif ($to =~ /\A\+[1-9][0-9]*\z/) {
+            # Seconds relative to from
+            # As $end >= $start, '+0' doesn't make sense
+            $end = $start + $to;
+        } else {
+            die "$0: Can't parse '$to' for --to\n";
+        }
+
+        die "$0: End $end must be after start $start (--from=$from --to=$to)"
+            if $end <= $start;
+    } else {
+        my $show = $options->{show} // 'today';
+        if ($show =~ /\A\s*(last|this|next)\s+week\s*\z/) {
             my $which = $1;
             my $start_of_week = DateTime->now()->truncate(to => 'week');
             if ($which eq 'last') {
@@ -33,12 +63,12 @@ sub calculate_start_end {
                 $start_of_week->add(weeks => 1);
                 $end = $start_of_week->epoch();
             }
-        } elsif ($options->{show} =~ /\A\s*yesterday\s*\z/) {
+        } elsif ($show =~ /\A\s*yesterday\s*\z/) {
             my $midnight = DateTime->today();
             $end = $midnight->epoch();
             $midnight->subtract(days => 1);
             $start = $midnight->epoch();
-        } elsif ($options->{show} =~ /\A\s*(today|tomorrow)\s*\z/) {
+        } elsif ($show =~ /\A\s*(today|tomorrow)\s*\z/) {
             my $midnight = DateTime->today();
             $midnight->add(days => 1)
                 if $1 eq 'tomorrow';
@@ -46,7 +76,7 @@ sub calculate_start_end {
             $midnight->add(days => 1);
             $end = $midnight->epoch();
         } else {
-            die "$0: Unknown time period '$options->{show}' for --show\n";
+            die "$0: Unknown time period '$show' for --show\n";
         }
     }
 
