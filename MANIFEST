@@ -6,6 +6,8 @@ lib/Cron/Sequencer.pm
 lib/Cron/Sequencer/CLI.pm
 lib/Cron/Sequencer/Output.pm
 lib/Cron/Sequencer/Parser.pm
+t/cli-parse_argv.t
+t/cli-start_end.t
 t/new.t
 t/parser.t
 t/reminder
