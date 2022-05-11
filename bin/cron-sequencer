@@ -3,30 +3,12 @@
 use v5.20.0;
 use warnings;
 
-use Cron::Sequencer::CLI;
+use Cron::Sequencer::CLI qw(parse_argv);
 require Cron::Sequencer::Output;
 require Cron::Sequencer;
-use Getopt::Long;
-use Pod::Usage;
+require Pod::Usage;
 
-my %options;
-
-unless(GetOptions(\%options,
-                  'show=s',
-                  'from=s',
-                  'to=s',
-                  'hide-env',
-                  'env=s@',
-              )) {
-    pod2usage(exitval => 255, verbose => 1);
-}
-
-my ($start, $end) = calculate_start_end(\%options);
-
-my $file = shift;
-
-pod2usage(exitval => 255)
-    unless defined $file;
+my ($start, $end, $output, @input) = parse_argv(\&Pod::Usage::pod2usage, @ARGV);
 
 =head1 NAME
 
@@ -40,9 +22,9 @@ TODO
 
 =cut
 
-my $crontab = Cron::Sequencer->new($file);
+my $crontab = Cron::Sequencer->new(@input);
 
-my $formatter = Cron::Sequencer::Output->new(%options{qw(env hide-env)});
+my $formatter = Cron::Sequencer::Output->new(@$output);
 my $gap = "\n\n";
 
 my $not_first;

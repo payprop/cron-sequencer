@@ -7,7 +7,7 @@ use Test::More;
 use Test::Deep;
 require DateTime;
 
-use Cron::Sequencer::CLI;
+use Cron::Sequencer::CLI qw(calculate_start_end);
 
 my $nowish = time;
 

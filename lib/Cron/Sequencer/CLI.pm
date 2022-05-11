@@ -7,9 +7,37 @@ package Cron::Sequencer::CLI;
 
 use parent qw(Exporter);
 require DateTime;
+use Getopt::Long qw(GetOptionsFromArray);
 
 our $VERSION = '0.01';
-our @EXPORT = qw(calculate_start_end);
+our @EXPORT_OK = qw(calculate_start_end parse_argv);
+
+sub parse_argv {
+    my ($pod2usage, @argv) = @_;
+
+    my %options;
+
+    unless(GetOptionsFromArray(\@argv, \%options,
+                               'show=s',
+                               'from=s',
+                               'to=s',
+                               'hide-env',
+                               'env=s@',
+                           )) {
+        $pod2usage->(exitval => 255, verbose => 1);
+    }
+
+    my ($start, $end) = calculate_start_end(\%options);
+
+    my $file = shift @argv;
+
+    $pod2usage->(exitval => 255)
+        unless defined $file;
+
+    my @input = $file;
+    my $output = [%options{qw(env hide-env)}];
+    return ($start, $end, $output, @input);
+}
 
 sub calculate_start_end {
     my $options = shift;
