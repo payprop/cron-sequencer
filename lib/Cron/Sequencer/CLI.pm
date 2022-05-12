@@ -63,7 +63,7 @@ sub parse_argv {
     $pod2usage->(exitval => 255)
         unless @input;
 
-    my $output = [%global_options{qw(hide-env)}];
+    my $output = [%global_options{qw(hide-env)}, count => scalar @input];
     return ($start, $end, $output, @input);
 }
 

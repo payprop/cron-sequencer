@@ -54,7 +54,7 @@ for (["no arguments", "",
     }
 }
 
-my $default_output = ['hide-env', undef];
+my $default_output = ['hide-env', undef, count => 1];
 my $default_for_file = {env => undef, source => "file"};
 my @defaults = (@today, $default_output);
 
@@ -66,7 +66,7 @@ for (["file", [@defaults, $default_for_file]],
      ["--from 1 --to 11 -- file", [1, 11, $default_output, $default_for_file]],
      ["--from 1 --to 11 file --", [1, 11, $default_output, $default_for_file]],
 
-     ["--hide-env file", [@today, ['hide-env', 1], $default_for_file]],
+     ["--hide-env file", [@today, ['hide-env', 1, 'count', 1], $default_for_file]],
      ["--env=FOO=BAR file --env BAZ=",
       [@defaults, {env => ["FOO=BAR", "BAZ="], source => "file"}]],
  ) {

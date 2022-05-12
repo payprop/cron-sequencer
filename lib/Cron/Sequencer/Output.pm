@@ -15,7 +15,7 @@ sub new {
     confess('new() called as an instance method')
         if ref $class;
 
-    my %state;
+    my %state = %opts{count};
     if ($opts{'hide-env'}) {
         ++$state{hide_env};
     }
@@ -35,7 +35,11 @@ sub format_group {
     my @output;
 
     for my $entry (@entries) {
-        push @output, "", "line $entry->{lineno}: $entry->{when}";
+        if ($self->{count} > 1) {
+            push @output, "", "$entry->{file}:$entry->{lineno}: $entry->{when}";
+        } else {
+            push @output, "", "line $entry->{lineno}: $entry->{when}";
+        }
 
         unless ($self->{hide_env}) {
             local *_;

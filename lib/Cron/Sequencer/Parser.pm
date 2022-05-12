@@ -170,6 +170,7 @@ sub _parser {
              };
 
             my %entry = (
+                file => $source,
                 lineno => $lineno,
                 when => $time,
                 command => $command,

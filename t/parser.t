@@ -30,6 +30,7 @@ for ([hourly => { min => 0, }],
     my $have = Cron::Sequencer::Parser::_parser(\"$special woof!", "Bother!");
 
     cmp_deeply($have, [{
+        file => "Bother!",
         lineno => 1,
         when => $special,
         command => 'woof!',
@@ -70,12 +71,14 @@ EOT
 
 cmp_deeply($have, [
     {
+        file => "Comments!",
         lineno => 6,
         when => '0 1 2 3 4',
         command => 'woof!',
         whenever => isa('Algorithm::Cron'),
     },
     {
+        file => "Comments!",
         lineno => 10,
         when => '1 2 3 4 5',
         command => "woof!\t",
@@ -85,6 +88,7 @@ cmp_deeply($have, [
         whenever => isa('Algorithm::Cron'),
     },
     {
+        file => "Comments!",
         lineno => 14,
         when => "02\t03\t04\t05\t06",
         command => 'w o o f !',
@@ -125,6 +129,7 @@ for (['FOO=BAR', 'FOO', 'BAR', 'normal'],
         = Cron::Sequencer::Parser::_parser(\"$input\n* * * * * woof!", "Env test!");
 
     cmp_deeply($have, [{
+        file => "Env test!",
         lineno => 2,
         when => '* * * * *',
         command => 'woof!',
@@ -158,6 +163,7 @@ for my $quote1 ("", "'", '"') {
                 = Cron::Sequencer::Parser::_parser(\"$input\n* * * * * woof!", "Env test!");
 
             cmp_deeply($have, [{
+                file => "Env test!",
                 lineno => 2,
                 when => '* * * * *',
                 command => 'woof!',
@@ -192,6 +198,7 @@ for my $quote1 ("", "'", '"') {
                 = Cron::Sequencer::Parser::_parser(\"$input\n* * * * * woof!", "Env test!");
 
             cmp_deeply($have, [{
+                file => "Env test!",
                 lineno => 2,
                 when => '* * * * *',
                 command => 'woof!',

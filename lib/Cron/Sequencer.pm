@@ -55,7 +55,7 @@ sub _next {
 
     for my $entry (@found) {
         push @retval, {
-            %$entry{qw(lineno when command env unset)},
+            %$entry{qw(file lineno when command env unset)},
             time => $when,
         };
 
