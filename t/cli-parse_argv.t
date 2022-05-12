@@ -30,6 +30,10 @@ for (["no arguments", "",
      ["--env and --hide-env together", "--hide-env file --env FOO=BAR",
       undef, 'exitval', 255,
       'message', "--env and --hide-env options can't be used together"],
+     ["--env and --hide-env together (anywhere)",
+      "--hide-env file1 -- file2 --env FOO=BAR",
+      undef, 'exitval', 255,
+      'message', "--env and --hide-env options can't be used together"],
  ) {
     my ($desc, $flat, $warn, @want) = @$_;
     my @args = split ' ', $flat;

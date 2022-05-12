@@ -15,31 +15,55 @@ our @EXPORT_OK = qw(calculate_start_end parse_argv);
 sub parse_argv {
     my ($pod2usage, @argv) = @_;
 
-    my %options;
+    my @groups;
+    my $current = [];
 
-    unless(GetOptionsFromArray(\@argv, \%options,
+    # Split the command line into sections:
+    for my $item (@argv) {
+        if ($item eq '--') {
+            push @groups, $current;
+            $current = [];
+        } else {
+            push @$current, $item;
+        }
+    }
+    push @groups, $current;
+
+    my %global_options;
+
+    Getopt::Long::Configure('pass_through');
+    unless(GetOptionsFromArray($groups[0], \%global_options,
                                'show=s',
                                'from=s',
                                'to=s',
                                'hide-env',
-                               'env=s@',
                            )) {
         $pod2usage->(exitval => 255, verbose => 1);
     }
 
-    $pod2usage->(exitval => 255,
-                 message => "--env and --hide-env options can't be used together")
-        if $options{'hide-env'} && $options{env};
+    my ($start, $end) = calculate_start_end(\%global_options);
 
-    my ($start, $end) = calculate_start_end(\%options);
+    my @input;
 
-    my $file = shift @argv;
+    Getopt::Long::Configure('no_pass_through');
+    for my $group (@groups) {
+        my %options;
+        unless(GetOptionsFromArray($group, \%options,
+                                   'env=s@',
+                               )) {
+            $pod2usage->(exitval => 255, verbose => 1);
+        }
+        $pod2usage->(exitval => 255,
+                     message => "--env and --hide-env options can't be used together")
+            if $global_options{'hide-env'} && $options{env};
+
+        push @input, map {{ source => $_, %options{qw(env)} }} @$group;
+    }
 
     $pod2usage->(exitval => 255)
-        unless defined $file;
+        unless @input;
 
-    my @input = { source => $file, %options{qw(env)} };
-    my $output = [%options{qw(hide-env)}];
+    my $output = [%global_options{qw(hide-env)}];
     return ($start, $end, $output, @input);
 }
 
