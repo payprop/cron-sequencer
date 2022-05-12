@@ -23,42 +23,6 @@ sub new {
     return bless \%state;
 }
 
-sub format_group {
-    my ($self, @entries) = @_;
-
-    # Should this be an error?
-    return ""
-        unless @entries;
-
-    my $when = DateTime->from_epoch(epoch => $entries[0]{time});
-
-    my @output;
-
-    for my $entry (@entries) {
-        if ($self->{count} > 1) {
-            push @output, "", "$entry->{file}:$entry->{lineno}: $entry->{when}";
-        } else {
-            push @output, "", "line $entry->{lineno}: $entry->{when}";
-        }
-
-        unless ($self->{hide_env}) {
-            local *_;
-            push @output, map "unset $_", $entry->{unset}->@*
-                if $entry->{unset};
-            my $env = $entry->{env};
-            push @output, map "$_=$env->{$_}", sort keys %$env
-                if $env;
-        }
-
-        push @output, $entry->{command};
-    }
-
-    # This replaces the blank line
-    $output[0] = $when->stringify();
-
-    return @output;
-}
-
 sub render {
     my ($self, @groups) = @_;
 
@@ -71,7 +35,39 @@ sub render {
         push @output, $gap
             if $not_first++;
 
-        push @output, $self->format_group(@$group);
+        # Should this be an error?
+        unless (@$group) {
+            push @output, "";
+            next;
+        }
+
+        my $when = DateTime->from_epoch(epoch => $group->[0]{time});
+
+        my @cluster;
+
+        for my $entry (@$group) {
+            if ($self->{count} > 1) {
+                push @cluster, "", "$entry->{file}:$entry->{lineno}: $entry->{when}";
+            } else {
+                push @cluster, "", "line $entry->{lineno}: $entry->{when}";
+            }
+
+            unless ($self->{hide_env}) {
+                local *_;
+                push @cluster, map "unset $_", $entry->{unset}->@*
+                    if $entry->{unset};
+                my $env = $entry->{env};
+                push @cluster, map "$_=$env->{$_}", sort keys %$env
+                    if $env;
+            }
+
+            push @cluster, $entry->{command};
+        }
+
+        # This replaces the blank line
+        $cluster[0] = $when->stringify();
+
+        push @output, @cluster;
     }
 
     return join "\n", @output, "";
