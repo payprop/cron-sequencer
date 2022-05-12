@@ -52,7 +52,7 @@ like(exception {
      }, qr/^Unknown special string \@woof at line 1 of Oops!/,
      'Special string @woof is unknown');
 
-my $have = Cron::Sequencer::Parser::_parser(\<<"EOT", "Comments!");
+my $crontab = <<"EOT";
 # This is a comment
    # This too
    #IS=Comment
@@ -68,6 +68,7 @@ FOO=BAZ
 
 02\t03\t04\t05\t06\tw o o f !
 EOT
+my $have = Cron::Sequencer::Parser::_parser(\$crontab, "Comments!");
 
 cmp_deeply($have, [
     {
@@ -98,6 +99,32 @@ cmp_deeply($have, [
         whenever => isa('Algorithm::Cron'),
     },
 ], "Captures env");
+
+$have = Cron::Sequencer::Parser::_parser(\$crontab, "ignore", undef, {
+    10 => 1,
+    12 => 1,
+});
+
+cmp_deeply($have, [
+    {
+        file => "ignore",
+        lineno => 6,
+        when => '0 1 2 3 4',
+        command => 'woof!',
+        whenever => isa('Algorithm::Cron'),
+    },
+    {
+        file => "ignore",
+        lineno => 14,
+        when => "02\t03\t04\t05\t06",
+        command => 'w o o f !',
+        env => {
+            FOO => 'BAR',
+        },
+        whenever => isa('Algorithm::Cron'),
+    },
+], "ignore ignores lines");
+
 
 for (['FOO=BAR', 'FOO', 'BAR', 'normal'],
      ['FOO=BAR=BAZ', 'FOO', 'BAR=BAZ', 'value contains ='],
@@ -236,5 +263,22 @@ for (['FOO=', 'omitted value is not legal'],
     };
     like($have, $want // qr/\ACan't parse '\Q$input\E'/, $desc);
 }
+
+$crontab = <<"EOT";
+=
+0 1 2 3 4 woof!
+EOT
+
+$have = Cron::Sequencer::Parser::_parser(\$crontab, "ignore trumps errors", undef, {
+    1 => 1,
+});
+
+cmp_deeply($have, [{
+        file => "ignore trumps errors",
+        lineno => 2,
+        when => '0 1 2 3 4',
+        command => 'woof!',
+        whenever => isa('Algorithm::Cron'),
+    }], 'ignore is processed first');
 
 done_testing();

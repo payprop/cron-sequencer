@@ -31,7 +31,7 @@ sub new {
     confess('new() called as an instance method')
         if ref $class;
 
-    my ($source, $crontab, $env);
+    my ($source, $crontab, $env, $ignore);
     if (!defined $arg) {
         croak(__PACKAGE__ . '->new($class, $arg)');
     } elsif (ref $arg eq 'SCALAR') {
@@ -50,6 +50,13 @@ sub new {
                 croak("invalid environment variable assignment: '$pair'")
                     unless defined $value;
                 $env->{$name} = $value;
+            }
+        }
+        if (exists $arg->{ignore}) {
+            for my $val ($arg->{ignore}->@*) {
+                croak("'ignore' must be a positive integer, not '$val'")
+                    unless $val =~ /\A[1-9][0-9]*\z/;
+                ++$ignore->{$val};
             }
         }
     } elsif (ref $arg) {
@@ -80,15 +87,19 @@ sub new {
         croak("crontab$source doesn't end with newline");
     }
 
-    return bless _parser($crontab, $source, $env), $class;
+    return bless _parser($crontab, $source, $env, $ignore), $class;
 }
 
 sub _parser {
-    my ($crontab, $source, $default_env) = @_;
+    my ($crontab, $source, $default_env, $ignore) = @_;
     my $diag = length $source ? " of $source" : "";
     my ($lineno, %env, @actions);
     for my $line (split "\n", $$crontab) {
         ++$lineno;
+
+        next
+            if $ignore->{$lineno};
+
         # vixie crontab ignores leading tabs and spaces
         # See skip_comments() in misc.c
         # However the rest of the env parser uses isspace(), so will skip more

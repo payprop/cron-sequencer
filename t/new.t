@@ -44,4 +44,11 @@ isa_ok(Cron::Sequencer->new({ source =>'./solve-halting-problem.pl',
                               crontab => "# Something involving Bruce Schneier and a roundhouse kick\n" }), 'Cron::Sequencer',
    "With 'crontab' argument, 'source' is purely descriptive");
 
+for my $bogus ("", "0", "-1", "fish", "1e2", " 42", "10-12", "12-10", "10-10") {
+    like(exception {
+        Cron::Sequencer->new({ crontab => "", ignore => [$bogus]});
+    }, qr/\A'ignore' must be a positive integer, not /,
+         "ignore validation traps '$bogus'");
+}
+
 done_testing();

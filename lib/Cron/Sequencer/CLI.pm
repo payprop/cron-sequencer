@@ -50,6 +50,7 @@ sub parse_argv {
         my %options;
         unless(GetOptionsFromArray($group, \%options,
                                    'env=s@',
+                                   'ignore=s@'
                                )) {
             $pod2usage->(exitval => 255, verbose => 1);
         }
@@ -57,7 +58,7 @@ sub parse_argv {
                      message => "--env and --hide-env options can't be used together")
             if $global_options{'hide-env'} && $options{env};
 
-        push @input, map {{ source => $_, %options{qw(env)} }} @$group;
+        push @input, map {{ source => $_, %options{qw(env ignore)} }} @$group;
     }
 
     $pod2usage->(exitval => 255)
