@@ -60,6 +60,30 @@ for (["no arguments", "",
     }
 }
 
+for my $flat ('--help', '--help --', '-- --help') {
+    my @args = split ' ', $flat;
+    my @caught;
+    my @warnings;
+
+    cmp_deeply(exception {
+        local $SIG{__WARN__} = sub {
+            push @warnings, \@_;
+        };
+        local *Getopt::Long::HelpMessage = sub {
+            # We really need to fake everything including control flow here, as
+            # merely "attempting" to die reaches code paths that Getopt::Long
+            # wasn't expecting to reach, and it generates numeric warnings.
+            push @caught, \@_;
+            goto "fake_exit";
+        };
+        parse_argv(\&fake_pod2usage, @args);
+        die "Failed to call the mocked &HelpMessage";
+    fake_exit:
+        die \@caught;
+    }, [[ignore(), 1]], "&HelpMessage called for $flat");
+    cmp_deeply(\@warnings, [], "no warnings for $flat");
+}
+
 my $default_output = ['hide-env', undef, count => 1];
 my $default_for_file = {env => undef, source => "file"};
 my @defaults = (@today, $default_output);

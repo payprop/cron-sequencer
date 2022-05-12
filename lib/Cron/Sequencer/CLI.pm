@@ -31,7 +31,7 @@ sub parse_argv {
 
     my %global_options;
 
-    Getopt::Long::Configure('pass_through', 'auto_version');
+    Getopt::Long::Configure('pass_through', 'auto_version', 'auto_help');
     unless(GetOptionsFromArray($groups[0], \%global_options,
                                'show=s',
                                'from=s',
