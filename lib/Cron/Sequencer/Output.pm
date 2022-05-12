@@ -26,30 +26,25 @@ sub new {
 sub render {
     my ($self, @groups) = @_;
 
-    my $gap = "\n";
-    my $not_first;
-
     my @output;
 
     for my $group (@groups) {
-        push @output, $gap
-            if $not_first++;
-
         # Should this be an error?
         unless (@$group) {
             push @output, "";
             next;
         }
 
-        my $when = DateTime->from_epoch(epoch => $group->[0]{time});
-
+        # 1+ entries that all fire at the same time
         my @cluster;
 
         for my $entry (@$group) {
+            # The first blank line we add here is replaced below with the time.
+            push @cluster, "";
             if ($self->{count} > 1) {
-                push @cluster, "", "$entry->{file}:$entry->{lineno}: $entry->{when}";
+                push @cluster, "$entry->{file}:$entry->{lineno}: $entry->{when}";
             } else {
-                push @cluster, "", "line $entry->{lineno}: $entry->{when}";
+                push @cluster, "line $entry->{lineno}: $entry->{when}";
             }
 
             unless ($self->{hide_env}) {
@@ -64,13 +59,20 @@ sub render {
             push @cluster, $entry->{command};
         }
 
-        # This replaces the blank line
+        # This replaces the blank line at the start of the "cluster".
+        my $when = DateTime->from_epoch(epoch => $group->[0]{time});
         $cluster[0] = $when->stringify();
 
-        push @output, @cluster;
+        push @output, @cluster, "", "";
     }
 
-    return join "\n", @output, "";
+    # Drop the (second) empty string added just above in the last iteration of
+    # the loop. If we don't do this, the second would cause an extra blank line
+    # at the end. The first empty string causes the last (real) line to get a
+    # newline (a newline that we want to have).
+    pop @output;
+
+    return join "\n", @output;
 }
 
 54;
