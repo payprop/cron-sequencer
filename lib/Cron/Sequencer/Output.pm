@@ -59,4 +59,22 @@ sub format_group {
     return @output;
 }
 
+sub render {
+    my ($self, @groups) = @_;
+
+    my $gap = "\n";
+    my $not_first;
+
+    my @output;
+
+    for my $group (@groups) {
+        push @output, $gap
+            if $not_first++;
+
+        push @output, $self->format_group(@$group);
+    }
+
+    return join "\n", @output, "";
+}
+
 54;

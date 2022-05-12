@@ -26,13 +26,5 @@ TODO
 my $crontab = Cron::Sequencer->new(@input);
 
 my $formatter = Cron::Sequencer::Output->new(@$output);
-my $gap = "\n\n";
 
-my $not_first;
-
-for my $group ($crontab->sequence($start, $end)) {
-    print $gap
-        if $not_first++;
-
-    print map { "$_\n" } $formatter->format_group(@$group);
-}
+print $formatter->render($crontab->sequence($start, $end));
