@@ -31,7 +31,7 @@ sub parse_argv {
 
     my %global_options;
 
-    Getopt::Long::Configure('pass_through');
+    Getopt::Long::Configure('pass_through', 'auto_version');
     unless(GetOptionsFromArray($groups[0], \%global_options,
                                'show=s',
                                'from=s',
@@ -45,7 +45,7 @@ sub parse_argv {
 
     my @input;
 
-    Getopt::Long::Configure('no_pass_through');
+    Getopt::Long::Configure('no_pass_through', 'no_auto_version');
     for my $group (@groups) {
         my %options;
         unless(GetOptionsFromArray($group, \%options,

@@ -37,6 +37,9 @@ for (["no arguments", "",
      ["Output options aren't allowed after --",
       "--from 1 --to 11 -- --hide-env file",
       qr/\AUnknown option: hide-env\n\z/, 'exitval', 255, 'verbose', 1],
+     ["--version isn't allowed after --",
+      "file -- --version",
+      qr/\AUnknown option: version\n\z/, 'exitval', 255, 'verbose', 1],
  ) {
     my ($desc, $flat, $warn, @want) = @$_;
     my @args = split ' ', $flat;

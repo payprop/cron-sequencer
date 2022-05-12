@@ -8,6 +8,7 @@ require Cron::Sequencer::Output;
 require Cron::Sequencer;
 require Pod::Usage;
 
+$main::VERSION = $Cron::Sequencer::VERSION;
 my ($start, $end, $output, @input) = parse_argv(\&Pod::Usage::pod2usage, @ARGV);
 
 =head1 NAME
