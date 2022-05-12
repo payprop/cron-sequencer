@@ -60,16 +60,18 @@ for (["no arguments", "",
     }
 }
 
-for my $flat ('--help', '--help --', '-- --help') {
+for my $flat ('--help', '--help --', '-- --help', '--version', '--version --') {
     my @args = split ' ', $flat;
     my @caught;
     my @warnings;
+
+    my $sub = ucfirst($flat =~ tr/a-z//dcr) . "Message";
 
     cmp_deeply(exception {
         local $SIG{__WARN__} = sub {
             push @warnings, \@_;
         };
-        local *Getopt::Long::HelpMessage = sub {
+        local *{$Getopt::Long::{$sub}} = sub {
             # We really need to fake everything including control flow here, as
             # merely "attempting" to die reaches code paths that Getopt::Long
             # wasn't expecting to reach, and it generates numeric warnings.
@@ -77,10 +79,10 @@ for my $flat ('--help', '--help --', '-- --help') {
             goto "fake_exit";
         };
         parse_argv(\&fake_pod2usage, @args);
-        die "Failed to call the mocked &HelpMessage";
+        die "Failed to call the mocked &$sub";
     fake_exit:
-        die \@caught;
-    }, [[ignore(), 1]], "&HelpMessage called for $flat");
+        die ["fake_exit for", @caught];
+    }, ["fake_exit for", [ignore(), 1]], "&$sub called for $flat");
     cmp_deeply(\@warnings, [], "no warnings for $flat");
 }
 
