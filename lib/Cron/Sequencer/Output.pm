@@ -75,4 +75,37 @@ sub render {
     return join "\n", @output;
 }
 
+# TODO - improve this documentation, as a side effect of adding other output
+# formats
+
+=head1 NAME
+
+Cron::Sequencer::Output
+
+=head1 SYNOPSIS
+
+    my $formatter = Cron::Sequencer::Output->new('hide-env' => 1);
+    print $formatter->render($crontab->sequence($start, $end));
+
+=head1 DESCRIPTION
+
+This class implements output formatting for L<Cron::Sequencer>
+
+Currently it can only output a pretty-printed text format, and the only option
+is whether to show or hide environment variable declartions.
+
+=head1 LICENSE
+
+This library is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself. If you would like to contribute documentation,
+features, bug fixes, or anything else then please raise an issue / pull request:
+
+    https://github.com/Humanstate/cron-sequencer
+
+=head1 AUTHOR
+
+Nicholas Clark - C<nick@ccl4.org>
+
+=cut
+
 54;
