@@ -140,4 +140,28 @@ sub calculate_start_end {
     return ($start, $end);
 }
 
+=head1 NAME
+
+Cron::Sequencer::CLI
+
+=head1 SYNOPSIS
+
+This module exists to make it easy to test the command line option parsing
+of L<bin/cron-sequencer>. It's for "internal use only", and subject to change
+(or deletion) without warning.
+
+=head1 LICENSE
+
+This library is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself. If you would like to contribute documentation,
+features, bug fixes, or anything else then please raise an issue / pull request:
+
+    https://github.com/Humanstate/cron-sequencer
+
+=head1 AUTHOR
+
+Nicholas Clark - C<nick@ccl4.org>
+
+=cut
+
 1;
