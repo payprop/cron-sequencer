@@ -225,6 +225,179 @@ sub entries {
     return @$self;
 }
 
+=head1 NAME
+
+Cron::Sequencer::Parser
+
+=head1 SYNOPSIS
+
+    my $crontab = Cron::Sequencer::Parser->new("/path/to/crontab");
+
+=head1 DESCRIPTION
+
+This class parses a single crontab and converts it to a form that
+C<Cron::Sequencer> can use.
+
+=head1 METHODS
+
+=head2 new
+
+C<new> takes a single argument representing a crontab file to parse. Various
+formats are supported:
+
+=over 4
+
+=item plain scalar
+
+A file on disk
+
+=item reference to a scalar
+
+The contents of the crontab (as a single string of multiple lines)
+
+=item reference to a hash
+
+=over 4
+
+=item crontab
+
+The contents of a crontab, as a single string of multiple lines.
+(Not a reference to a scalar containing this)
+
+=item source
+
+A file on disk. If both C<crontab> and C<source> are provided, then C<source>
+is only used as the name of the crontab in output (and errors). No attempt is
+made to read the file from disk.
+
+=item env
+
+Default values for environment variables set in the crontab, as a reference to
+an array of strings in the form C<KEY=VALUE>. See below for examples.
+
+=item ignore
+
+Lines in the crontab to completely ignore, as an array of integers. These are
+processed as the first step in the parser, so it's possible to ignore all of
+
+=over 4
+
+=item *
+
+command entries (particularly "chatty" entries such as C<* * * * *>)
+
+=item *
+
+setting environment variables
+
+=item *
+
+lines with syntax errors that otherwise would abort the parse
+
+=back
+
+=back
+
+This is the most flexible format. At least one of C<source> or C<crontab> must
+be specified.
+
+=back
+
+The only way to provide C<env> or C<ignore> options is to pass a hashref.
+
+=head2 entries
+
+Returns a list of the crontab's command entries as data structures. Used
+internally by C<Cron::Sequencer> and subject to change.
+
+=head1 EXAMPLES
+
+For this input
+
+    POETS=Friday
+    30 12 * * * lunch!
+
+with default constructor options this code:
+
+    use Cron::Sequencer;
+    use Data::Dump;
+    
+    my $crontab = Cron::Sequencer->new({source => "reminder"});
+    dd([$crontab->sequence(45000, 131400)]);
+
+would generate this output:
+
+    [
+      [
+        {
+          command => "lunch!",
+          env     => { POETS => "Friday" },
+          file    => "reminder",
+          lineno  => 2,
+          time    => 45000,
+          unset   => ["HUMP"],
+          when    => "30 12 * * *",
+        },
+      ],
+    ]
+
+If we specify two environment variables:
+
+    my $crontab = Cron::Sequencer->new({source => "reminder",
+                                        env    => [
+                                               "POETS=Friday",
+                                               "HUMP=Wednesday"
+                                           ]});
+
+the output is:
+
+    [
+      [
+        {
+          command => "lunch!",
+          env     => undef,
+          file    => "reminder",
+          lineno  => 2,
+          time    => 45000,
+          unset   => ["HUMP"],
+          when    => "30 12 * * *",
+        },
+      ],
+    ]
+
+(because C<POETS> matches the default, but C<HUMP> was never set in the crontab)
+
+If we ignore the first line:
+
+    my $crontab = Cron::Sequencer->new({source => "reminder",
+                                        ignore => [1]});
+
+    [
+      [
+        {
+          command => "lunch!",
+          env     => undef,
+          file    => "reminder",
+          lineno  => 2,
+          time    => 45000,
+          unset   => undef,
+          when    => "30 12 * * *",
+        },
+      ],
+    ]
+
+we ignore the line in the crontab that sets the environment variable.
+
+For completeness, if we ignore the line that declares an event:
+
+    my $crontab = Cron::Sequencer->new({source => "reminder",
+                                        ignore => [2]});
+
+
+there's nothing to output:
+
+    []
+
 =head1 LICENSE
 
 This library is free software; you can redistribute it and/or modify it under
