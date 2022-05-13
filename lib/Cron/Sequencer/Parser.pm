@@ -54,9 +54,14 @@ sub new {
         }
         if (exists $arg->{ignore}) {
             for my $val ($arg->{ignore}->@*) {
-                croak("'ignore' must be a positive integer, not '$val'")
-                    unless $val =~ /\A[1-9][0-9]*\z/;
-                ++$ignore->{$val};
+                if ($val =~ /\A([1-9][0-9]*)-([1-9][0-9]*)\z/ && $2 >= $1) {
+                    ++$ignore->{$_}
+                        for $1 .. $2;
+                } elsif ($val =~ /\A[1-9][0-9]*\z/) {
+                    ++$ignore->{$val};
+                } else {
+                    croak("'ignore' must be a positive integer, not '$val'");
+                }
             }
         }
     } elsif (ref $arg) {
