@@ -27,6 +27,10 @@ sub parse_argv {
         $pod2usage->(exitval => 255, verbose => 1);
     }
 
+    $pod2usage->(exitval => 255,
+                 message => "--env and --hide-env options can't be used together")
+        if $options{'hide-env'} && $options{env};
+
     my ($start, $end) = calculate_start_end(\%options);
 
     my $file = shift @argv;

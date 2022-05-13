@@ -27,6 +27,9 @@ for (["no arguments", "",
       undef, 'exitval', 255],
      ["unknown arguments", "--bogus",
       qr/\AUnknown option: bogus\n\z/, 'exitval', 255, 'verbose', 1],
+     ["--env and --hide-env together", "--hide-env file --env FOO=BAR",
+      undef, 'exitval', 255,
+      'message', "--env and --hide-env options can't be used together"],
  ) {
     my ($desc, $flat, $warn, @want) = @$_;
     my @args = split ' ', $flat;
@@ -60,8 +63,6 @@ for (["file", [@defaults, $default_for_file]],
      ["--from 1 --to 11 file --", [1, 11, $default_output, $default_for_file]],
 
      ["--hide-env file", [@today, ['env', undef, 'hide-env', 1], $default_for_file]],
-     ["--hide-env file --env FOO=BAR",
-      [@today, ['env', ["FOO=BAR"], 'hide-env', 1], "file"]],
      ["--env=FOO=BAR file --env BAZ=",
       [@today, ['env', ["FOO=BAR", "BAZ="], 'hide-env', undef], "file"]],
  ) {
