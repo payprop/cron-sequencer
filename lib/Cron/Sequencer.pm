@@ -95,6 +95,99 @@ sub sequence {
     return @results;
 }
 
+=head1 NAME
+
+Cron::Sequencer
+
+=head1 SYNOPSIS
+
+    my $crontab = Cron::Sequencer->new("/path/to/crontab");
+    print encode_json([$crontab->sequence($start, $end)]);
+
+=head1 DESCRIPTION
+
+This class can take one or more crontabs and show the sequence of commands
+that they would run for the time interval requested.
+
+=head1 METHODS
+
+=head2 new
+
+C<new> takes a list of arguments each representing a crontab file, passes each
+in turn to C<< Cron::Sequence::Parser->new >>, and then combines the parsed
+files into a single set of crontab events.
+
+See L<Cron::Sequence::Parser/new> for the various formats to specify a crontab
+file or its contents.
+
+=head2 sequence I<from> I<to>
+
+Generates the sequence of commands that the crontab(s) would run for the
+specific time interval. I<from> and I<to> are in epoch seconds, I<from> is
+inclusive, I<end> exclusive.
+
+Hence for this input:
+
+    30 12 * * * lunch!
+    30 12 * * 5 POETS!
+
+Calling C<< $crontab->sequence(45000, 131400) >> generates this output:
+
+    [
+      [
+        {
+          command => "lunch!",
+          env     => undef,
+          file    => "reminder",
+          lineno  => 1,
+          time    => 45000,
+          unset   => undef,
+          when    => "30 12 * * *",
+        },
+      ],
+    ]
+
+where the event(s) at C<131400> are not reported, because the end is
+exclusive. Whereas C<< $crontab->sequence(45000, 131401) >> shows:
+
+    [
+      [
+        {
+          command => "lunch!",
+          env     => undef,
+          file    => "reminder",
+          lineno  => 1,
+          time    => 45000,
+          unset   => undef,
+          when    => "30 12 * * *",
+        },
+      ],
+      [
+        {
+          command => "lunch!",
+          env     => undef,
+          file    => "reminder",
+          lineno  => 1,
+          time    => 131400,
+          unset   => undef,
+          when    => "30 12 * * *",
+        },
+        {
+          command => "POETS!",
+          env     => undef,
+          file    => "reminder",
+          lineno  => 2,
+          time    => 131400,
+          unset   => undef,
+          when    => "30 12 * * 5",
+        },
+      ],
+    ]
+
+The output is structured as a list of lists, with events that fire at the
+same time grouped as lists. This makes it easier to find cases where different
+crontab lines trigger at the same time.
+
 =head1 LICENSE
 
 This library is free software; you can redistribute it and/or modify it under
