@@ -71,6 +71,8 @@ for my $flat ('--help', '--help --', '-- --help', '--version', '--version --') {
         local $SIG{__WARN__} = sub {
             push @warnings, \@_;
         };
+        # So, seems that some versions of Perl need this to quiet a warning:
+        no warnings qw(redefine);
         local *{$Getopt::Long::{$sub}} = sub {
             # We really need to fake everything including control flow here, as
             # merely "attempting" to die reaches code paths that Getopt::Long
