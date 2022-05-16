@@ -5,7 +5,7 @@ use warnings;
 
 package Cron::Sequencer;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 use Carp qw(croak confess);
 
@@ -117,7 +117,7 @@ C<new> takes a list of arguments each representing a crontab file, passes each
 in turn to C<< Cron::Sequence::Parser->new >>, and then combines the parsed
 files into a single set of crontab events.
 
-See L<Cron::Sequence::Parser/new> for the various formats to specify a crontab
+See L<Cron::Sequencer::Parser/new> for the various formats to specify a crontab
 file or its contents.
 
 =head2 sequence I<from> I<to>
