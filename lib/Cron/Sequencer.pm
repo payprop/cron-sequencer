@@ -188,6 +188,90 @@ The output is structured as a list of lists, with events that fire at the
 same time grouped as lists. This makes it easier to find cases where different
 crontab lines trigger at the same time.
 
+=head1 SEE ALSO
+
+This module uses L<Algorithm::Cron> to implement the cron scheduling, but has
+its own crontab file parser. There are many other modules on CPAN:
+
+=over 4
+
+=item L<Config::Crontab>
+
+Parses, edits and outputs crontab files
+
+=item L<Config::Generator::Crontab>
+
+Outputs crontab files
+
+=item L<DateTime::Cron::Simple>
+
+Parse a cron entry and check against current time
+
+=item L<DateTime::Event::Cron>
+
+Generate recurrence sets from crontab lines and files
+
+=item L<Mojar::Cron>
+
+Cron-style datetime patterns and algorithm (for Mojolicious)
+
+=item L<Parse::Crontab>
+
+Parses crontab files
+
+=item L<Pegex::Crontab>
+
+A Pegex crontab Parser
+
+=item L<QBit::Cron>
+
+"Class for working with Cron" (for qbit)
+
+=item L<Set::Crontab>
+
+Expands crontab integer lists
+
+=item L<Schedule::Cron>
+
+cron-like scheduler for Perl subroutines
+
+=item L<Schedule::Cron::Events>
+
+take a line from a crontab and find out when events will occur
+
+=item L<Time::Crontab>
+
+Parser for crontab time specifications
+
+=back
+
+These modules fall into roughly three groups
+
+=over 4
+
+=item *
+
+Abstract C<crontab> file parsing and manipulation
+
+=item *
+
+Parsing individule command time specification strings
+
+=item *
+
+Scheduling events in real time
+
+=back
+
+None of the "schedulers" are easy to adapt to show events (rather than running
+them) and to do so for arbitrary time intervals. The parsers effectively provide
+an "abstract syntax tree" for the crontab, but by design don't handle
+"compiling" this into a sequence of "this command, with these environment
+variable definitions in scope". The parser/compiler in this module is 70 lines
+of code, including comments, and handles various corner cases and quirks of the
+vixie crontab C parser code. Interfacing to one of AST parser modules and
+implementing a "compiler" on it would likely be more code than this.
+
 =head1 LICENSE
 
 This library is free software; you can redistribute it and/or modify it under
