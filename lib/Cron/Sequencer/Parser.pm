@@ -53,7 +53,11 @@ sub new {
             }
         }
         if (exists $arg->{ignore}) {
-            for my $val ($arg->{ignore}->@*) {
+            for my $val (map {
+                # Want to reach the croak if passed an empty string, so can't
+                # just call split, as that returns an empty list for that input
+                length $_ ? split /,/, $_ : $_
+            } $arg->{ignore}->@*) {
                 if ($val =~ /\A([1-9][0-9]*)-([1-9][0-9]*)\z/ && $2 >= $1) {
                     ++$ignore->{$_}
                         for $1 .. $2;
