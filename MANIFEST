@@ -2,6 +2,7 @@ Changes
 CONTRIBUTING.md
 MANIFEST
 Makefile.PL
+README
 bin/cron-sequencer
 lib/Cron/Sequencer.pm
 lib/Cron/Sequencer/CLI.pm
