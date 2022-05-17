@@ -1,5 +1,8 @@
 Revision history for Cron-Sequencer
 
+0.02  2022-05-17 NWCLARK
+        - Fix problems found by cpantesters; tweak documentation
+
 0.01  2022-05-16 NWCLARK
         - First EXPERIMENTAL release escapes to an unsuspecting CPAN
 
