@@ -5,7 +5,7 @@ use warnings;
 
 package Cron::Sequencer::Output;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 use Carp qw(confess croak);
 
@@ -15,16 +15,18 @@ sub new {
     confess('new() called as an instance method')
         if ref $class;
 
-    my %state = %opts{count};
-    if ($opts{'hide-env'}) {
-        ++$state{hide_env};
-    }
+    my %state = %opts{qw(count group hide-env)};
 
     return bless \%state;
 }
 
 sub render {
     my ($self, @groups) = @_;
+
+    # We assume that you normally want things grouped, so we aren't particularly
+    # optimising the "flat" --no-group path:
+    @groups = map { [$_] } map { @$_ } @groups
+        unless $self->{group};
 
     my @output;
 

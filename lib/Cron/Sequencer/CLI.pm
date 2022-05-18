@@ -9,7 +9,7 @@ use parent qw(Exporter);
 require DateTime;
 use Getopt::Long qw(GetOptionsFromArray);
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 our @EXPORT_OK = qw(calculate_start_end parse_argv);
 
 sub parse_argv {
@@ -29,7 +29,9 @@ sub parse_argv {
     }
     push @groups, $current;
 
-    my %global_options;
+    my %global_options = (
+        group => 1,
+    );
 
     Getopt::Long::Configure('pass_through', 'auto_version', 'auto_help');
     unless(GetOptionsFromArray($groups[0], \%global_options,
@@ -37,6 +39,7 @@ sub parse_argv {
                                'from=s',
                                'to=s',
                                'hide-env',
+                               'group!',
                            )) {
         $pod2usage->(exitval => 255, verbose => 1);
     }
@@ -64,7 +67,7 @@ sub parse_argv {
     $pod2usage->(exitval => 255)
         unless @input;
 
-    my $output = [%global_options{qw(hide-env)}, count => scalar @input];
+    my $output = [%global_options{qw(hide-env group)}, count => scalar @input];
     return ($start, $end, $output, @input);
 }
 

@@ -88,10 +88,10 @@ for my $flat ('--help', '--help --', '-- --help', '--version', '--version --') {
     cmp_deeply(\@warnings, [], "no warnings for $flat");
 }
 
-my $default_output = ['hide-env', undef, count => 1];
+my $default_output = ['hide-env', undef, group => 1, count => 1, ];
 my $default_for_file = {env => undef, ignore => undef, source => "file"};
 my @defaults = (@today, $default_output);
-my @defaults2 = (@today, ['hide-env', undef, count => 2]);
+my @defaults2 = (@today, ['hide-env', undef, group =>1, count => 2]);
 
 for (["file", [@defaults, $default_for_file]],
      ["file --show today", [@defaults, $default_for_file]],
@@ -101,7 +101,8 @@ for (["file", [@defaults, $default_for_file]],
      ["--from 1 --to 11 -- file", [1, 11, $default_output, $default_for_file]],
      ["--from 1 --to 11 file --", [1, 11, $default_output, $default_for_file]],
 
-     ["--hide-env file", [@today, ['hide-env', 1, 'count', 1], $default_for_file]],
+     ["--hide-env file", [@today, ['hide-env', 1, group => 1, count => 1],
+                          $default_for_file]],
      ["--env=FOO=BAR file --env BAZ=",
       [@defaults, {env => ["FOO=BAR", "BAZ="], ignore => undef, source => "file"}]],
      ["-- --env=FOO=BAR file --env BAZ=",
@@ -135,7 +136,7 @@ for (["file", [@defaults, $default_for_file]],
        {env => ["BAZ="], ignore => undef, source => "file2"},
    ]],
      ["file1 --env=FOO=BAR file2 -- file3 file4 -- file5 --env BAZ= file6",
-      [@today, ['hide-env', undef, count => 6],
+      [@today, ['hide-env', undef, group => 1, count => 6],
        {env => ["FOO=BAR"], ignore => undef, source => "file1"},
        {env => ["FOO=BAR"], ignore => undef, source => "file2"},
        {env => undef, ignore => undef, source => "file3"},
