@@ -29,4 +29,7 @@ WriteMakefile(
             repository => 'https://github.com/Humanstate/cron-sequencer'
         },
     },
+    EXE_FILES => [
+        'bin/cron-sequencer',
+    ],
 );
