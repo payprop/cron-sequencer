@@ -3,6 +3,10 @@
 use v5.20.0;
 use warnings;
 
+# The parts of this that we use have been stable and unchanged since v5.20.0:
+use feature qw(postderef);
+no warnings 'experimental::postderef';
+
 package Cron::Sequencer::Output;
 
 our $VERSION = '0.02';
@@ -15,7 +19,7 @@ sub new {
     confess('new() called as an instance method')
         if ref $class;
 
-    my %state = %opts{qw(count group hide-env)};
+    my %state = %opts{qw(count group hide-env json)};
 
     return bless \%state;
 }
@@ -27,6 +31,13 @@ sub render {
     # optimising the "flat" --no-group path:
     @groups = map { [$_] } map { @$_ } @groups
         unless $self->{group};
+
+    return $self->{json}
+        ? $self->render_json(@groups) : $self->render_text(@groups);
+}
+
+sub render_text {
+    my ($self, @groups) = @_;
 
     my @output;
 
@@ -75,6 +86,25 @@ sub render {
     pop @output;
 
     return join "\n", @output;
+}
+
+sub render_json {
+    my ($self, @groups) = @_;
+    require JSON::MaybeXS;
+
+    my %opts = $self->{json}->%*;
+
+    # CLI parser forbids 'seq' and 'split' simultaneously.
+    my $seq = delete $opts{seq};
+    my $start = $seq ? "\x1E" : "";
+    my $split = delete $opts{split} || $seq;
+
+    my $json = JSON::MaybeXS->new(%opts);
+
+    return $json->encode(\@groups) . "\n"
+        unless $split;
+
+    return join '', map { $start . $json->encode($_) . "\n" } @groups;
 }
 
 # TODO - improve this documentation, as a side effect of adding other output

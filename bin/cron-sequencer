@@ -107,6 +107,53 @@ shown once and then all events firing at that time are grouped together, to make
 it clearer that they are run simultaneously. With the C<--no-group> option,
 each event is treated independently and shown with its own timestamp.
 
+=item --json
+
+Generate JSON output. This intended for machine consumption, and the plan is
+to keep it stable (deletion or changes subject to deprecation cycles, but be
+preparated for new keys to be added). Please don't parse the default text
+output, as this is intended to be human-readable and might have minor changes
+without warning.
+
+Value(s) can be provided to --json to tweak the output
+
+=over 4
+
+=item pretty
+
+=item canonical
+
+Set these options on the JSON serialiser. See L<JSON::PP/pretty> and
+L<JSON::PP/canonical> for details.
+
+=item split
+
+Instead of serialising a single JSON value encoding an array of structures,
+instead output that list of structures as a sequence of JSON values, with
+newlines between them.
+
+=item seq
+
+Similar to C<split>, but output C<application/json-seq> format - each value
+is preceded with an ASCII C<record separator> character and followed by a
+newline. See L<RFC 7464|https://www.rfc-editor.org/rfc/rfc7464.txt>
+
+=back
+
+C<split> and C<seq> are mutually exclusive.
+
+The C<--json> option is parsed differently from other options with arguments -
+to specify arguments you must use the C<=> form - I<eg> C<--json=pretty>
+Without this special parsing you could also have written C<--json pretty>, but
+that would mean either that C<--json> would B<always> need an argument, or that
+C<--json pretty> would be an option but C<--json foobar> would be "display
+I<foobar> as I<JSON>" -- with silent breakage if we ever wanted to introduce a
+C<--json=foobar> option.
+
+The first choice JSON serialiser is L<Cpanel::JSON::XS> which behaves
+identically, but as it doesn't provide direct link targets in its documentation
+this document links to the relevant sections in C<JSON::PP>.
+
 =item --help
 
 Shows this documentation

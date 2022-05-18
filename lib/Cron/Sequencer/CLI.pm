@@ -3,6 +3,10 @@
 use v5.20.0;
 use warnings;
 
+# The parts of this that we use have been stable and unchanged since v5.20.0:
+use feature qw(postderef);
+no warnings 'experimental::postderef';
+
 package Cron::Sequencer::CLI;
 
 use parent qw(Exporter);
@@ -12,17 +16,41 @@ use Getopt::Long qw(GetOptionsFromArray);
 our $VERSION = '0.02';
 our @EXPORT_OK = qw(calculate_start_end parse_argv);
 
+my %known_json = map { $_, 1 } qw(seq split pretty canonical);
+
 sub parse_argv {
     my ($pod2usage, @argv) = @_;
 
     my @groups;
     my $current = [];
+    my $json;
 
     # Split the command line into sections:
     for my $item (@argv) {
         if ($item eq '--') {
             push @groups, $current;
             $current = [];
+        } elsif ($item =~ /\A--json(?:=(.*)|)\z/s && !@groups) {
+            # GetOpt::Long doesn't appear to have a way to specify to specify an
+            # option that can take an argument, but it so, the argument must be
+            # given in the '=' form.
+            # We'd like to support `--json` and `--json=pretty` but have
+            # `--json pretty` mean the same as `./pretty --json`
+
+            if (length $1) {
+                for my $opt (split ',', $1) {
+                    $pod2usage->(exitval => 255,
+                                 message => "Unknown --json option '$opt'")
+                        unless $known_json{$opt};
+                    $json->{$opt} = 1;
+                }
+                $pod2usage->(exitval => 255,
+                             message => "Can't use --json=seq with --json=split")
+                    if $json->{seq} && $json->{split};
+            } else {
+                # Flag that we saw --json
+                $json //= {};
+            }
         } else {
             push @$current, $item;
         }
@@ -68,6 +96,10 @@ sub parse_argv {
         unless @input;
 
     my $output = [%global_options{qw(hide-env group)}, count => scalar @input];
+
+    push @$output, json => $json
+        if $json;
+
     return ($start, $end, $output, @input);
 }
 
