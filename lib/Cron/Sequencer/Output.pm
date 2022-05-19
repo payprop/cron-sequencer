@@ -9,7 +9,7 @@ no warnings 'experimental::postderef';
 
 package Cron::Sequencer::Output;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 use Carp qw(confess croak);
 

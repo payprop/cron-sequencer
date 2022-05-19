@@ -13,7 +13,7 @@ use parent qw(Exporter);
 require DateTime;
 use Getopt::Long qw(GetOptionsFromArray);
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 our @EXPORT_OK = qw(calculate_start_end parse_argv);
 
 my %known_json = map { $_, 1 } qw(seq split pretty canonical);
