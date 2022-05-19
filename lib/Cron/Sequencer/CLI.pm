@@ -141,7 +141,7 @@ sub calculate_start_end {
             if $end <= $start;
     } else {
         my $show = $options->{show} // 'today';
-        if ($show =~ /\A\s*(last|this|next)\s+(hour|week)\s*\z/) {
+        if ($show =~ /\A\s*(last|this|next)\s+(hour|day|week)\s*\z/) {
             my $which = $1;
             my $what = $2;
             my $start_of_period = DateTime->now()->truncate(to => $what);

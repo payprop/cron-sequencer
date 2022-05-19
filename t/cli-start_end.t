@@ -103,6 +103,17 @@ $duration_sum += $duration;
 cmp_ok($duration_sum, '>=', 3600 * 3 - 1, 'at most 1 negative leap second');
 cmp_ok($duration_sum, '<=', 3600 * 3 + 2, 'at most 2 leap seconds');
 
+for (['this day', 'today'],
+     ['next day', 'tomorrow'],
+     ['last day', 'yesterday'],
+ ) {
+    my ($alias, $target) = @$_;
+
+    cmp_deeply([calculate_start_end({ show => $alias })],
+           [calculate_start_end({ show => $target })],
+               "'$alias' is the same as '$target'");
+}
+
 # Let's arrive at midnight via a slightly different route, which doesn't
 # assume the redefinition of _core_time worked.
 my $midnight

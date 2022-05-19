@@ -81,6 +81,10 @@ Days and weeks are treated as starting at midnight (inclusive) and ending at
 midnight (exclusive). Hours start at the start of the current hour. The default
 is I<today>
 
+(For completeness and consistency, C<this day> is provided as an alias for
+C<today>, as well as aliases C<next day> and C<last day>, but it's probably less
+clear to use these.)
+
 =item --from I<epoch time>
 
 =item --to I<epoch time>
