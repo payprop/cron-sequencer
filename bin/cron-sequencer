@@ -75,11 +75,21 @@ this hour
 
 next hour
 
+=item *
+
+I<(next|last) (\d*) (hours|days|weeks)>
+
 =back
 
-Days and weeks are treated as starting at midnight (inclusive) and ending at
-midnight (exclusive). Hours start at the start of the current hour. The default
-is I<today>
+Single days and weeks are treated as starting at midnight (inclusive) and ending
+at midnight (exclusive). Single hours start at the start of the current hour.
+The default is I<today>
+
+The counted forms (I<next 2 days>, I<last 24 hours>, I<etc>) start or end from
+the current time. Truncating to the day or hour would introduce ambiguities -
+doing so would mean "next 2 hours" usually wouldn't show events 119 minutes in
+the future, or it would mean showing between 120 and 179 minutes of events.
+Neither choice makes sense.
 
 (For completeness and consistency, C<this day> is provided as an alias for
 C<today>, as well as aliases C<next day> and C<last day>, but it's probably less

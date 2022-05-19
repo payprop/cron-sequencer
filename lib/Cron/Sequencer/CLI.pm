@@ -156,6 +156,24 @@ sub calculate_start_end {
                 $start_of_period->add($what . 's' => 1);
                 $end = $start_of_period->epoch();
             }
+        } elsif ($show =~ /\A\s*(last|next)\s+([1-9][0-9]*)\s+(hour|day|week)s\s*\z/) {
+            my $which = $1;
+            my $count = $2;
+            my $what = $3;
+
+            # I was going to name this $now, but then realised that if I add or
+            # subtract on it, it won't be very "now" any more...
+            my $aargh_mutable = DateTime->now();
+
+            if ($which eq 'last') {
+                $end = $aargh_mutable->epoch();
+                $aargh_mutable->subtract($what . 's' => $count);
+                $start = $aargh_mutable->epoch();
+            } else {
+                $start= $aargh_mutable->epoch();
+                $aargh_mutable->add($what . 's' => $count);
+                $end = $aargh_mutable->epoch();
+            }
         } elsif ($show =~ /\A\s*yesterday\s*\z/) {
             my $midnight = DateTime->today();
             $end = $midnight->epoch();

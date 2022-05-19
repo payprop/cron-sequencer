@@ -114,6 +114,27 @@ for (['this day', 'today'],
                "'$alias' is the same as '$target'");
 }
 
+my @hours = calculate_start_end({ show => 'next 11 hours' });
+cmp_deeply(\@hours, $two_integers, '"next 11 hours" is also 2 integers');
+is($hours[0], $nowish, 'next 3 hours starts now');
+$duration = $hours[1] - $hours[0];
+cmp_ok($duration, '>=', 3600 * 11 - 1, 'at most 1 negative leap second');
+cmp_ok($duration, '<=', 3600 * 11 + 2, 'at most 2 leap seconds');
+
+my @days = calculate_start_end({ show => 'last 3 days' });
+cmp_deeply(\@days, $two_integers, '"last 3 days" is also 2 integers');
+is($days[1], $nowish, 'last 3 days ends now');
+$duration = $days[1] - $days[0];
+cmp_ok($duration, '>=', 3600 * (22 + 24 + 24), 'at most 2 hours short');
+cmp_ok($duration, '<=', 3600 * (26 + 24 + 24), 'at most 2 hours long');
+
+my @weeks = calculate_start_end({ show => 'next 1 weeks' });
+cmp_deeply(\@weeks, $two_integers, '"next 1 weeks" is also 2 integers');
+is($weeks[0], $nowish, 'next 1 weeks starts now');
+$duration = $weeks[1] - $weeks[0];
+cmp_ok($duration, '>=', 3600 * 166, 'at most 2 hours short');
+cmp_ok($duration, '<=', 3600 * 170, 'at most 2 hours long');
+
 # Let's arrive at midnight via a slightly different route, which doesn't
 # assume the redefinition of _core_time worked.
 my $midnight
