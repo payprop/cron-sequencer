@@ -115,6 +115,14 @@ preparated for new keys to be added). Please don't parse the default text
 output, as this is intended to be human-readable and might have minor changes
 without warning.
 
+The default JSON output is a single JSON value with the top level an array.
+Within this, the default is arrays grouping events that happen at the same time,
+with the events represented as hashes. If C<--no-group> is used, then the inner
+arrays are removed, and the top level array contains the hashes directly.
+
+If you need JSON output in structures that these options don't offer, consider
+piping the output of this program to a tool such as C<jq>.
+
 Value(s) can be provided to --json to tweak the output
 
 =over 4
@@ -128,9 +136,9 @@ L<JSON::PP/canonical> for details.
 
 =item split
 
-Instead of serialising a single JSON value encoding an array of structures,
-instead output that list of structures as a sequence of JSON values, with
-newlines between them.
+Instead of serialising a single JSON value encoding an array of structures
+(arrays of hashes by default, hashes with C<--no-group>) instead output that
+list of structures as a sequence of JSON values, with newlines between them.
 
 =item seq
 

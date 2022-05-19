@@ -27,17 +27,17 @@ sub new {
 sub render {
     my ($self, @groups) = @_;
 
-    # We assume that you normally want things grouped, so we aren't particularly
-    # optimising the "flat" --no-group path:
-    @groups = map { [$_] } map { @$_ } @groups
-        unless $self->{group};
-
     return $self->{json}
         ? $self->render_json(@groups) : $self->render_text(@groups);
 }
 
 sub render_text {
     my ($self, @groups) = @_;
+
+    # We assume that you normally want things grouped, so we aren't particularly
+    # optimising the "flat" --no-group path:
+    @groups = map { [$_] } map { @$_ } @groups
+        unless $self->{group};
 
     my @output;
 
@@ -100,6 +100,9 @@ sub render_json {
     my $split = delete $opts{split} || $seq;
 
     my $json = JSON::MaybeXS->new(%opts);
+
+    @groups = map { @$_ } @groups
+        unless $self->{group};
 
     return $json->encode(\@groups) . "\n"
         unless $split;
