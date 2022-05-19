@@ -101,13 +101,43 @@ sub render_json {
 
     my $json = JSON::MaybeXS->new(%opts);
 
-    @groups = map { @$_ } @groups
-        unless $self->{group};
+    my $munged;
+    if ($self->{'hide-env'}) {
+        # We shouldn't mutate our input, so we need to make a copy. As we need
+        # to loop over the data anyway for --no-groups, combine the two loops
+        if ($self->{group}) {
+            for my $group (@groups) {
+                # We need to create new anon arrays to hold our cleaned entries:
+                my @cleaned;
+                for my $entry (@$group) {
+                    my %copy = %$entry;
+                    # Clean
+                    delete @copy{qw(unset env)};
+                    # and flatten
+                    push @cleaned, \%copy;
+                }
+                push @$munged, \@cleaned;
+            }
+        } else {
+            for my $entry (map { @$_ } @groups) {
+                my %copy = %$entry;
+                # Clean
+                delete @copy{qw(unset env)};
+                # and flatten
+                push @$munged, \%copy;
+            }
+        }
+    } elsif ($self->{group}) {
+        # Nothing to do!
+        $munged = \@groups;
+    } else {
+        @$munged = map { @$_ } @groups;
+    }
 
-    return $json->encode(\@groups) . "\n"
+    return $json->encode($munged) . "\n"
         unless $split;
 
-    return join '', map { $start . $json->encode($_) . "\n" } @groups;
+    return join '', map { $start . $json->encode($_) . "\n" } @$munged;
 }
 
 # TODO - improve this documentation, as a side effect of adding other output
