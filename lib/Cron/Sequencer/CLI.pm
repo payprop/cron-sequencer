@@ -141,19 +141,20 @@ sub calculate_start_end {
             if $end <= $start;
     } else {
         my $show = $options->{show} // 'today';
-        if ($show =~ /\A\s*(last|this|next)\s+week\s*\z/) {
+        if ($show =~ /\A\s*(last|this|next)\s+(hour|week)\s*\z/) {
             my $which = $1;
-            my $start_of_week = DateTime->now()->truncate(to => 'week');
+            my $what = $2;
+            my $start_of_period = DateTime->now()->truncate(to => $what);
             if ($which eq 'last') {
-                $end = $start_of_week->epoch();
-                $start_of_week->subtract(weeks => 1);
-                $start = $start_of_week->epoch();
+                $end = $start_of_period->epoch();
+                $start_of_period->subtract($what . 's' => 1);
+                $start = $start_of_period->epoch();
             } else {
-                $start_of_week->add(weeks => 1)
+                $start_of_period->add($what . 's' => 1)
                     if $which eq 'next';
-                $start = $start_of_week->epoch();
-                $start_of_week->add(weeks => 1);
-                $end = $start_of_week->epoch();
+                $start = $start_of_period->epoch();
+                $start_of_period->add($what . 's' => 1);
+                $end = $start_of_period->epoch();
             }
         } elsif ($show =~ /\A\s*yesterday\s*\z/) {
             my $midnight = DateTime->today();

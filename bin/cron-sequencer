@@ -63,10 +63,23 @@ this week
 
 next week
 
+=item *
+
+last hour
+
+=item *
+
+this hour
+
+=item *
+
+next hour
+
 =back
 
-All are treated as starting at midnight (inclusive) and ending at midnight
-(exclusive). The default is I<today>
+Days and weeks are treated as starting at midnight (inclusive) and ending at
+midnight (exclusive). Hours start at the start of the current hour. The default
+is I<today>
 
 =item --from I<epoch time>
 

@@ -70,6 +70,39 @@ $duration = $next_week[1] - $next_week[0];
 cmp_ok($duration, '>=', 166 * 3600, 'duration is at least 166 hours');
 cmp_ok($duration, '<=', 170 * 3600, 'duration is  no more than 170 hours');
 
+
+my @this_hour = calculate_start_end({ show => 'this hour' });
+cmp_deeply(\@this_hour, $two_integers, '"this hour" is also 2 integers');
+cmp_ok($default_se[0], '<=', $this_hour[0], 'this hour starts no earlier than midnight gone');
+cmp_ok($this_hour[1], '<=', $default_se[1], 'this hour ends no later than midnight next');
+$duration = $this_hour[1] - $this_hour[0];
+# Leap seconds!
+cmp_ok($duration, '<=', 3602, 'duration is no than 3600 seconds');
+# Negtive leap seconds‼
+cmp_ok($duration, '>=', 3599, 'duration is at least 3599 seconds');
+
+my $duration_sum = $duration;
+
+my @last_hour = calculate_start_end({ show => 'last hour' });
+cmp_deeply(\@last_hour, $two_integers, '"last hour" is also 2 integers');
+is($last_hour[1], $this_hour[0], '"last hour" ends where "this hour" starts');
+$duration = $last_hour[1] - $last_hour[0];
+cmp_ok($duration, '<=', 3602, 'duration is no than 3600 seconds');
+cmp_ok($duration, '>=', 3599, 'duration is at least 3599 seconds');
+
+$duration_sum += $duration;
+
+my @next_hour = calculate_start_end({ show => 'next hour' });
+cmp_deeply(\@next_hour, $two_integers, '"next hour" is also 2 integers');
+is($next_hour[0], $this_hour[1], '"next hour" starts where "this hour" end');
+cmp_ok($duration, '<=', 3602, 'duration is no than 3600 seconds');
+cmp_ok($duration, '>=', 3599, 'duration is at least 3599 seconds');
+
+$duration_sum += $duration;
+
+cmp_ok($duration_sum, '>=', 3600 * 3 - 1, 'at most 1 negative leap second');
+cmp_ok($duration_sum, '<=', 3600 * 3 + 2, 'at most 2 leap seconds');
+
 # Let's arrive at midnight via a slightly different route, which doesn't
 # assume the redefinition of _core_time worked.
 my $midnight
