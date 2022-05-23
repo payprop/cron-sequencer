@@ -5,7 +5,9 @@ use warnings;
 
 use Test::More;
 use Test::Deep;
+use Test::Fatal;
 require DateTime;
+require JSON::MaybeXS;
 
 use Cron::Sequencer::CLI qw(calculate_start_end);
 
@@ -170,6 +172,26 @@ for (['{from => 42}', [42, 3642]],
         or BAIL_OUT("The author's test source '$raw' is not a HASH reference");
 
     cmp_deeply([calculate_start_end($input)], $want, "calculate_start_end($raw)");
+}
+
+my $json = JSON::MaybeXS->new({ space_after => 1, canonical => 1, });
+
+for ([qr/: Can't use --show with --from or --to\n\z/,
+      { from => '+0', show => 'today' }],
+     [qr/: Can't use --show with --from or --to\n\z/,
+      { to => '+0', show => 'today' }],
+     [qr/: Can't parse 'woof' for --from\n\z/,
+      { from => 'woof' }],
+     [qr/: Can't parse 'woof' for --to\n\z/,
+      { to => 'woof' }],
+     [qr/: Unknown time period 'woof' for --show\n\z/,
+      { show => 'woof' }],
+     [qr/: End 42 must be after start 54 \(--from=54 --to=42\)\n\z/,
+      { from => 54, to => 42 }],
+ ) {
+    my ($want, $args) = @$_;
+    my $desc = $json->encode($args);
+    like(exception { calculate_start_end($args) }, $want, "exception for $desc");
 }
 
 done_testing();

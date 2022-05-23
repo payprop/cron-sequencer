@@ -13,7 +13,7 @@ use parent qw(Exporter);
 require DateTime;
 use Getopt::Long qw(GetOptionsFromArray);
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 our @EXPORT_OK = qw(calculate_start_end parse_argv);
 
 my %known_json = map { $_, 1 } qw(seq split pretty canonical);
@@ -109,7 +109,7 @@ sub calculate_start_end {
     my ($start, $end);
 
     if (defined $options->{from} || defined $options->{to}) {
-        die "$0: Can't use --show with --from or --to"
+        die "$0: Can't use --show with --from or --to\n"
             if defined $options->{show};
 
         # Default is midnight gone
@@ -137,7 +137,7 @@ sub calculate_start_end {
             die "$0: Can't parse '$to' for --to\n";
         }
 
-        die "$0: End $end must be after start $start (--from=$from --to=$to)"
+        die "$0: End $end must be after start $start (--from=$from --to=$to)\n"
             if $end <= $start;
     } else {
         my $show = $options->{show} // 'today';
