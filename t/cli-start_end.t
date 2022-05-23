@@ -116,6 +116,18 @@ for (['this day', 'today'],
                "'$alias' is the same as '$target'");
 }
 
+for my $when (qw (last this next)) {
+    my @minutes = calculate_start_end({ show => "$when minute" });
+    cmp_deeply(\@minutes, $two_integers, '"$when minutes" is also 2 integers');
+}
+
+my @minutes = calculate_start_end({ show => 'last 5 minutes' });
+cmp_deeply(\@minutes, $two_integers, '"last 5 minutes" is also 2 integers');
+is($minutes[1], $nowish, 'last 5 minutes ends now');
+$duration = $minutes[1] - $minutes[0];
+cmp_ok($duration, '>=', 299, 'at most 1 leap second short');
+cmp_ok($duration, '<=', 302, 'at most 2 leap seconds long');
+
 my @hours = calculate_start_end({ show => 'next 11 hours' });
 cmp_deeply(\@hours, $two_integers, '"next 11 hours" is also 2 integers');
 is($hours[0], $nowish, 'next 3 hours starts now');

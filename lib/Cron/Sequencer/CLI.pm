@@ -141,7 +141,7 @@ sub calculate_start_end {
             if $end <= $start;
     } else {
         my $show = $options->{show} // 'today';
-        if ($show =~ /\A\s*(last|this|next)\s+(hour|day|week)\s*\z/) {
+        if ($show =~ /\A\s*(last|this|next)\s+(minute|hour|day|week)\s*\z/) {
             my $which = $1;
             my $what = $2;
             my $start_of_period = DateTime->now()->truncate(to => $what);
@@ -156,7 +156,7 @@ sub calculate_start_end {
                 $start_of_period->add($what . 's' => 1);
                 $end = $start_of_period->epoch();
             }
-        } elsif ($show =~ /\A\s*(last|next)\s+([1-9][0-9]*)\s+(hour|day|week)s\s*\z/) {
+        } elsif ($show =~ /\A\s*(last|next)\s+([1-9][0-9]*)\s+(minute|hour|day|week)s\s*\z/) {
             my $which = $1;
             my $count = $2;
             my $what = $3;

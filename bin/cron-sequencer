@@ -77,7 +77,7 @@ next hour
 
 =item *
 
-I<(next|last) (\d*) (hours|days|weeks)>
+I<(next|last) (\d*) (minutes|hours|days|weeks)>
 
 =back
 
@@ -93,7 +93,8 @@ Neither choice makes sense.
 
 (For completeness and consistency, C<this day> is provided as an alias for
 C<today>, as well as aliases C<next day> and C<last day>, but it's probably less
-clear to use these.)
+clear to use these. Likewise C<last minute> I<etc> also exist, but they seem
+unlikely to be useful as the results shown will rapidly change.)
 
 =item --from I<epoch time>
 
