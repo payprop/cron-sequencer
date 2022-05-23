@@ -123,6 +123,16 @@ before midnight gone.
 
 Hence C<--from +0 --to +3600> shows events from midnight until 00:59 inclusive.
 
+Beware - because of how Unix shells split command line arguments, and how option
+parsing requires a single argument to be the value, for the options that have
+spaces you will need to escape the spaces. So you'd need to write:
+
+  cron-sequencer --show "last week" cronfile
+
+or
+
+  cron-sequencer "--show=last 3 days" cronfile
+
 =item --hide-env
 
 Don't show environment variables in the output.

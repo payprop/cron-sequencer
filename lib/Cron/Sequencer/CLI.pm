@@ -186,6 +186,8 @@ sub calculate_start_end {
             $start = $midnight->epoch();
             $midnight->add(days => 1);
             $end = $midnight->epoch();
+        } elsif ($show =~ /\A(?:last|this|next)\z/) {
+            die "$0: Unknown time period '$show' for --show (did you forget to escape the space after it?)\n";
         } else {
             die "$0: Unknown time period '$show' for --show\n";
         }

@@ -194,4 +194,10 @@ for ([qr/: Can't use --show with --from or --to\n\z/,
     like(exception { calculate_start_end($args) }, $want, "exception for $desc");
 }
 
+for my $word (qw(last this next)) {
+    like(exception { calculate_start_end({show => $word}) },
+         qr/: Unknown time period '$word' for --show \(did you forget to escape the space after it\?\)\n\z/,
+         "exception for --show $word");
+}
+
 done_testing();
