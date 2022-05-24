@@ -1,5 +1,8 @@
 Revision history for Cron-Sequencer
 
+0.05  2022-05-24 NWCLARK
+        - ISO 8601 date/times with --to, --from and --show
+
 0.04  2022-05-23 NWCLARK
         - Fix --hide-env regression; --show 'last 30 minutes'
 
