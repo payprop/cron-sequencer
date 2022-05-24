@@ -14,6 +14,7 @@ WriteMakefile(
     PREREQ_PM => {
         'Algorithm::Cron'  => 0,
         'DateTime'         => 0,
+        'DateTime::Format::ISO8601' => 0,
         'JSON::MaybeXS'    => 0,
         'Try::Tiny'        => 0,
     },

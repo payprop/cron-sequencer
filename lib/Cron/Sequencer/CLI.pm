@@ -11,9 +11,10 @@ package Cron::Sequencer::CLI;
 
 use parent qw(Exporter);
 require DateTime;
+require DateTime::Format::ISO8601;
 use Getopt::Long qw(GetOptionsFromArray);
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 our @EXPORT_OK = qw(calculate_start_end parse_argv);
 
 my %known_json = map { $_, 1 } qw(seq split pretty canonical);
@@ -121,7 +122,30 @@ sub calculate_start_end {
             # Seconds relative to midnight gone
             $start = DateTime->today()->epoch() + $from;
         } else {
-            die "$0: Can't parse '$from' for --from\n";
+            my $line;
+            eval {
+                $line = __LINE__ + 1;
+                $start = DateTime::Format::ISO8601->parse_datetime($from)->epoch();
+            };
+            unless (defined $start) {
+                # Seems that we can't override DateTime::Format::ISO8601 on_fail
+                # *cleanly*. DateTime::Format::Builder on_fail is trying to use
+                # $Carp::CarpLevel to keep itself and its calls to
+                # DateTime::Format::Builder::Parser out of the backtrace, but it
+                # and Carp don't quite agree on the right number to use, with
+                # the unfortunate result that it triggers a full backtrace
+                # (effectively croak turns into confess, because Carp runs out
+                # of call stack before $Carp::CarpLevel is exhausted. No, I
+                # didn't know that it did this. "Today I Learned")
+
+                # I don't want to confuse the user with a backtrace. This seems
+                # like the simplest solution.
+
+                my $message = $@;
+                my $file = quotemeta __FILE__;
+                $message =~ s/ at $file line $line.*//s;
+                die "$0: Can't parse --from: $message\n";
+            }
         }
 
         # Default is to show 1 hour
@@ -134,7 +158,17 @@ sub calculate_start_end {
             # As $end >= $start, '+0' doesn't make sense
             $end = $start + $to;
         } else {
-            die "$0: Can't parse '$to' for --to\n";
+            my $line;
+            eval {
+                $line = __LINE__ + 1;
+                $end = DateTime::Format::ISO8601->parse_datetime($to)->epoch();
+            };
+            unless (defined $end) {
+                my $message = $@;
+                my $file = quotemeta __FILE__;
+                $message =~ s/ at $file line $line.*//s;
+                die "$0: Can't parse --to: $message\n";
+            }
         }
 
         die "$0: End $end must be after start $start (--from=$from --to=$to)\n"
