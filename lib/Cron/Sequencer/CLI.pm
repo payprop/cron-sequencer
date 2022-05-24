@@ -223,7 +223,20 @@ sub calculate_start_end {
         } elsif ($show =~ /\A(?:last|this|next)\z/) {
             die "$0: Unknown time period '$show' for --show (did you forget to escape the space after it?)\n";
         } else {
-            die "$0: Unknown time period '$show' for --show\n";
+            my ($line, $midnight);
+            eval {
+                $line = __LINE__ + 1;
+                $midnight = DateTime::Format::ISO8601->parse_datetime($show)->truncate(to => 'day');
+            };
+            unless (defined $midnight) {
+                my $message = $@;
+                my $file = quotemeta __FILE__;
+                $message =~ s/ at $file line $line.*//s;
+                die "$0: Can't parse --show: $message\n";
+            }
+            $start = $midnight->epoch();
+            $midnight->add(days => 1);
+            $end = $midnight->epoch();
         }
     }
 

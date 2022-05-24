@@ -149,6 +149,12 @@ $duration = $weeks[1] - $weeks[0];
 cmp_ok($duration, '>=', 3600 * 166, 'at most 2 hours short');
 cmp_ok($duration, '<=', 3600 * 170, 'at most 2 hours long');
 
+my @Christmas = calculate_start_end({ show => '2015-12-25T16:57:19-05:00'});
+cmp_deeply(\@Christmas, $two_integers, '"Christmas" is also 2 integers');
+
+$duration = $Christmas[1] - $Christmas[0];
+is($duration, 24 * 3600, '"Christmas" is exactly 86400 seconds');
+
 # Let's arrive at midnight via a slightly different route, which doesn't
 # assume the redefinition of _core_time worked.
 my $midnight
@@ -208,7 +214,7 @@ for ([qr/: Can't use --show with --from or --to\n\z/,
       { from => 'woof' }],
      [qr/: Can't parse --to: Invalid date format: woof at .*\bTest.Fatal\.pm /,
       { to => 'woof' }],
-     [qr/: Unknown time period 'woof' for --show\n\z/,
+     [qr/: Can't parse --show: Invalid date format: woof at .*\bTest.Fatal\.pm /,
       { show => 'woof' }],
      [qr/: End 42 must be after start 54 \(--from=54 --to=42\)\n\z/,
       { from => 54, to => 42 }],

@@ -79,6 +79,10 @@ next hour
 
 I<(next|last) (\d*) (minutes|hours|days|weeks)>
 
+=item *
+
+I<ISO 8601 date/time>
+
 =back
 
 Single days and weeks are treated as starting at midnight (inclusive) and ending
@@ -90,6 +94,10 @@ the current time. Truncating to the day or hour would introduce ambiguities -
 doing so would mean "next 2 hours" usually wouldn't show events 119 minutes in
 the future, or it would mean showing between 120 and 179 minutes of events.
 Neither choice makes sense.
+
+For ISO 8601 date/times, the time is ignored, and the single day is shown
+(midnight inclusive to midnight exclusive). See I<--from>/I<--to> if you need
+more specific date/time ranges.
 
 (For completeness and consistency, C<this day> is provided as an alias for
 C<today>, as well as aliases C<next day> and C<last day>, but it's probably less
